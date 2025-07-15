@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+option go_package = "aresdata/api/v1;v1";
+
+// 数据源提供商
+enum Provider {
+	PROVIDER_UNSPECIFIED = 0;
+	FEIGUA = 1; // 飞瓜
+	CHANMAMA = 2; // 蝉妈妈
+}
+
+// 采集任务
+message Task {
+	string task_id = 1;
+	Provider provider = 2;
+	string data_type = 3; // e.g., "video_rank_daily", "product_detail"
+	string payload = 4;   // JSON string for extra params like {"date": "20250714"}
+}

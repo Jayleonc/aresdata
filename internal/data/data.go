@@ -1,0 +1,55 @@
+package data
+
+import (
+	"aresdata/internal/conf"
+
+	"github.com/go-kratos/kratos/v2/log"
+	"github.com/google/wire"
+	"github.com/redis/go-redis/v9"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
+)
+
+// ProviderSet is data providers.
+var ProviderSet = wire.NewSet(NewData, NewRedisClient, NewSourceDataRepo, NewFeiguaProvider)
+
+// Data .
+type Data struct {
+	db     *gorm.DB
+	redis  redis.Cmdable
+	Logger *log.Helper
+}
+
+// NewData .
+func NewData(c *conf.Data, redisClient redis.Cmdable, logger log.Logger) (*Data, func(), error) {
+	db, err := gorm.Open(postgres.Open(c.Database.Source), &gorm.Config{})
+	if err != nil {
+		return nil, nil, err
+	}
+	helper := log.NewHelper(logger)
+	cleanup := func() {
+		helper.Info("closing the data resources")
+		sqlDB, _ := db.DB()
+		sqlDB.Close()
+		_ = redisClient.(*redis.Client).Close()
+	}
+
+	db.AutoMigrate(&SourceData{})
+
+	return &Data{
+		db:     db,
+		redis:  redisClient,
+		Logger: helper,
+	}, cleanup, nil
+}
+
+// NewRedisClient 初始化 Redis 客户端
+func NewRedisClient(conf *conf.Data) redis.Cmdable {
+	return redis.NewClient(&redis.Options{
+		Addr:         conf.Redis.Addr,
+		Network:      conf.Redis.Network,
+		Password:     conf.Redis.Password,
+		ReadTimeout:  conf.Redis.ReadTimeout.AsDuration(),
+		WriteTimeout: conf.Redis.WriteTimeout.AsDuration(),
+	})
+}

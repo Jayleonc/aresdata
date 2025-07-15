@@ -1,0 +1,93 @@
+# Generated with protoc-gen-openapi
+# https://github.com/google/gnostic/tree/master/cmd/protoc-gen-openapi
+
+openapi: 3.0.3
+info:
+    title: Fetcher API
+    version: 0.0.1
+paths:
+    /v1/fetch:
+        post:
+            tags:
+                - Fetcher
+            description: 采集并存储
+            operationId: Fetcher_FetchAndStore
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/.FetchAndStoreRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/.FetchAndStoreReply'
+    /v1/hello:
+        get:
+            tags:
+                - Fetcher
+            description: Hello GET 方法
+            operationId: Fetcher_Hello
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/.HelloReply'
+components:
+    schemas:
+        .FetchAndStoreReply:
+            type: object
+            properties:
+                savedData:
+                    $ref: '#/components/schemas/.SourceData'
+        .FetchAndStoreRequest:
+            type: object
+            properties:
+                task:
+                    $ref: '#/components/schemas/.Task'
+        .HelloReply:
+            type: object
+            properties:
+                message:
+                    type: string
+            description: Hello 方法的响应
+        .SourceData:
+            type: object
+            properties:
+                id:
+                    type: string
+                providerName:
+                    type: string
+                dataType:
+                    type: string
+                rawContent:
+                    type: string
+                fetchedAt:
+                    type: string
+                    format: date-time
+                status:
+                    type: integer
+                    format: int32
+                entityId:
+                    type: string
+            description: 原始数据条目
+        .Task:
+            type: object
+            properties:
+                taskId:
+                    type: string
+                provider:
+                    type: integer
+                    format: enum
+                dataType:
+                    type: string
+                payload:
+                    type: string
+            description: 采集任务
+tags:
+    - name: Fetcher

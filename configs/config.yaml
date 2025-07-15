@@ -1,0 +1,16 @@
+server:
+  http:
+    addr: 0.0.0.0:8000
+    timeout: 1s
+  grpc:
+    addr: 0.0.0.0:9000
+    timeout: 1s
+data:
+  database:
+    driver: postgres
+    source: postgres://root:jayleonc@localhost:15432/aresdata?sslmode=disable
+  redis:
+    addr: 127.0.0.1:16379
+    password: "123456"
+    read_timeout: 0.2s
+    write_timeout: 0.2s

@@ -1,0 +1,42 @@
+syntax = "proto3";
+
+option go_package = "aresdata/api/v1;v1";
+
+import "google/api/annotations.proto";
+import "v1/source_data.proto";
+import "v1/task.proto";
+
+service Fetcher {
+	// 采集并存储
+	rpc FetchAndStore(FetchAndStoreRequest) returns (FetchAndStoreReply) {
+		option (google.api.http) = {
+			post: "/v1/fetch"
+			body: "*"
+		};
+	}
+
+	// Hello GET 方法
+	rpc Hello(HelloRequest) returns (HelloReply) {
+		option (google.api.http) = {
+			get: "/v1/hello"
+		};
+	}
+}
+
+message FetchAndStoreRequest {
+	Task task = 1;
+}
+
+message FetchAndStoreReply {
+	SourceData saved_data = 1;
+}
+
+// Hello 方法的请求
+message HelloRequest {
+	// 可以根据需要添加字段，暂时留空
+}
+
+// Hello 方法的响应
+message HelloReply {
+	string message = 1;
+}
