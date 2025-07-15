@@ -14,3 +14,10 @@ data:
     password: "123456"
     read_timeout: 0.2s
     write_timeout: 0.2s
+  feigua:
+    baseUrl: "http://118.31.20.20:8080"
+    cookie: "PHPSESSID=tdn5sqcnh1ub2413v9n6ffdpgt; body_collapsed=1"
+
+# 在文件末尾追加
+job:
+  fetchVideoRankCron: "0 2 * * *" # 每天2:00执行

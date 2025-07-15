@@ -1,6 +1,9 @@
 package biz
 
-import "github.com/google/wire"
+import (
+	"aresdata/pkg/fetcher"
+	"github.com/google/wire"
+)
 
 // ProviderSet is biz providers.
-var ProviderSet = wire.NewSet(NewFetcherUsecase, NewProviderFactory)
+var ProviderSet = wire.NewSet(NewFetcherUsecase, fetcher.NewFeiguaFetcher)

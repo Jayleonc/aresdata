@@ -8,6 +8,7 @@ import "google/protobuf/duration.proto";
 message Bootstrap {
 	Server server = 1;
 	Data data = 2;
+	Job job = 3; // 新增此行
 }
 
 message Server {
@@ -39,4 +40,17 @@ message Data {
 	}
 	Database database = 1;
 	Redis redis = 2;
+	Feigua feigua = 3;
+}
+
+// Data_Feigua 结构体，包含 BaseUrl 和 Cookie 字段
+message Feigua {
+	string base_url = 1;
+	string cookie = 2;
+}
+
+
+// 在文件底部，`Data` message 定义之后，添加新的 Job message
+message Job {
+	string fetch_video_rank_cron = 1;
 }
