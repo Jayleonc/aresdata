@@ -3,7 +3,7 @@
 
 openapi: 3.0.3
 info:
-    title: Fetcher API
+    title: ""
     version: 0.0.1
 paths:
     /v1/fetch:
@@ -38,8 +38,70 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/.HelloReply'
+    /v1/video_rank:
+        get:
+            tags:
+                - VideoRank
+            description: 查询单个视频榜单信息
+            operationId: VideoRank_GetVideoRank
+            parameters:
+                - name: awemeId
+                  in: query
+                  schema:
+                    type: string
+                - name: rankType
+                  in: query
+                  schema:
+                    type: string
+                - name: rankDate
+                  in: query
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/.VideoRankQueryResponse'
+    /v1/video_rank/List:
+        get:
+            tags:
+                - VideoRank
+            description: 批量查询视频榜单信息
+            operationId: VideoRank_BatchGetVideoRank
+            parameters:
+                - name: awemeIds
+                  in: query
+                  schema:
+                    type: array
+                    items:
+                        type: string
+                - name: rankType
+                  in: query
+                  schema:
+                    type: string
+                - name: rankDate
+                  in: query
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/.BatchVideoRankQueryResponse'
 components:
     schemas:
+        .BatchVideoRankQueryResponse:
+            type: object
+            properties:
+                ranks:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/.VideoRankDTO'
+            description: 批量查询响应
         .FetchAndStoreReply:
             type: object
             properties:
@@ -89,5 +151,99 @@ components:
                 payload:
                     type: string
             description: 采集任务
+        .VideoRankDTO:
+            type: object
+            properties:
+                id:
+                    type: string
+                createdAt:
+                    type: string
+                    format: date-time
+                rankNum:
+                    type: integer
+                    description: 榜单核心
+                    format: int32
+                periodType:
+                    type: string
+                rankDate:
+                    type: string
+                startDate:
+                    type: string
+                endDate:
+                    type: string
+                awemeId:
+                    type: string
+                    description: 视频信息
+                awemeCoverUrl:
+                    type: string
+                awemeDesc:
+                    type: string
+                awemePubTime:
+                    type: string
+                    format: date-time
+                awemeShareUrl:
+                    type: string
+                durationStr:
+                    type: string
+                awemeScoreStr:
+                    type: string
+                goodsId:
+                    type: string
+                    description: 商品信息
+                goodsTitle:
+                    type: string
+                goodsCoverUrl:
+                    type: string
+                goodsPriceRange:
+                    type: string
+                goodsPrice:
+                    type: number
+                    format: double
+                cosRatio:
+                    type: string
+                commissionPrice:
+                    type: string
+                shopName:
+                    type: string
+                brandName:
+                    type: string
+                categoryNames:
+                    type: string
+                bloggerId:
+                    type: integer
+                    description: 博主信息
+                    format: int32
+                bloggerUid:
+                    type: string
+                bloggerName:
+                    type: string
+                bloggerAvatar:
+                    type: string
+                bloggerFansNum:
+                    type: integer
+                    format: int32
+                bloggerTag:
+                    type: string
+                salesCountStr:
+                    type: string
+                    description: 榜单统计
+                totalSalesStr:
+                    type: string
+                likeCountIncStr:
+                    type: string
+                playCountIncStr:
+                    type: string
+                rawJson:
+                    type: string
+                    description: 元数据
+            description: 榜单视频榜结构
+        .VideoRankQueryResponse:
+            type: object
+            properties:
+                rank:
+                    $ref: '#/components/schemas/.VideoRankDTO'
+            description: VideoRank 查询响应
 tags:
     - name: Fetcher
+    - name: VideoRank
+      description: VideoRank 提供榜单视频排名查询服务

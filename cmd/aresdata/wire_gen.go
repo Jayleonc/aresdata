@@ -12,6 +12,7 @@ import (
 	"aresdata/internal/data"
 	"aresdata/internal/server"
 	"aresdata/internal/service"
+	"aresdata/pkg/fetcher"
 	"github.com/go-kratos/kratos/v2"
 	"github.com/go-kratos/kratos/v2/log"
 )
@@ -31,8 +32,8 @@ func wireApp(confServer *conf.Server, confData *conf.Data, logger log.Logger) (*
 		return nil, nil, err
 	}
 	sourceDataRepo := data.NewSourceDataRepo(dataData, logger)
-	providerFactory := biz.NewProviderFactory()
-	fetcherUsecase := biz.NewFetcherUsecase(sourceDataRepo, providerFactory, logger)
+	feiguaFetcher := fetcher.NewFeiguaFetcher(confData, logger)
+	fetcherUsecase := biz.NewFetcherUsecase(sourceDataRepo, feiguaFetcher, logger)
 	fetcherService := service.NewFetcherService(fetcherUsecase, logger)
 	httpServer := server.NewHTTPServer(confServer, fetcherService, logger)
 	app := newApp(logger, grpcServer, httpServer)

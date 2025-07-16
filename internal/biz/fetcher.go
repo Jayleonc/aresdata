@@ -1,26 +1,24 @@
 package biz
 
 import (
-	"aresdata/api/v1"
+	v1 "aresdata/api/v1"
+	"aresdata/internal/data"
 	"aresdata/pkg/fetcher"
 	"context"
 	"encoding/json"
-
+	"fmt"
 	"github.com/go-kratos/kratos/v2/log"
+	"google.golang.org/protobuf/types/known/timestamppb"
+	"time"
 )
 
-// SourceDataRepo 是Biz层依赖的Data层接口，由 data/source_data.go 实现
-type SourceDataRepo interface {
-	Save(context.Context, *v1.SourceData) (*v1.SourceData, error)
-}
-
 type FetcherUsecase struct {
-	repo    SourceDataRepo
+	repo    data.SourceDataRepo
 	fetcher *fetcher.FeiguaFetcher
 	log     *log.Helper
 }
 
-func NewFetcherUsecase(repo SourceDataRepo, fetcher *fetcher.FeiguaFetcher, logger log.Logger) *FetcherUsecase {
+func NewFetcherUsecase(repo data.SourceDataRepo, fetcher *fetcher.FeiguaFetcher, logger log.Logger) *FetcherUsecase {
 	return &FetcherUsecase{
 		repo:    repo,
 		fetcher: fetcher,
@@ -43,14 +41,14 @@ func (uc *FetcherUsecase) FetchAndStoreVideoRank(ctx context.Context, period, da
 	// 注意：我们仍然将未解密的原始数据存入，将解析工作留给ETL
 	var contentData map[string]interface{}
 	_ = json.Unmarshal([]byte(rawContent), &contentData)
-	entityID := datecode // 对于榜单数据，可以用日期作为唯一标识
 
 	sourceData := &v1.SourceData{
-		ProviderName: "FEIGUA",
+		ProviderName: "feigua",
 		DataType:     "video_rank_" + period, // 例如: video_rank_day
 		RawContent:   rawContent,
-		EntityId:     entityID,
+		EntityId:     fmt.Sprintf("%s_%s", period, datecode),
 		Status:       0, // 初始状态为 未处理
+		FetchedAt:    timestamppb.New(time.Now()),
 	}
 
 	// 3. 调用Repo存储到数据库
