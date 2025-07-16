@@ -19,16 +19,13 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	Fetcher_FetchAndStore_FullMethodName = "/Fetcher/FetchAndStore"
-	Fetcher_Hello_FullMethodName         = "/Fetcher/Hello"
+	Fetcher_Hello_FullMethodName = "/Fetcher/Hello"
 )
 
 // FetcherClient is the client API for Fetcher service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type FetcherClient interface {
-	// 采集并存储
-	FetchAndStore(ctx context.Context, in *FetchAndStoreRequest, opts ...grpc.CallOption) (*FetchAndStoreReply, error)
 	// Hello GET 方法
 	Hello(ctx context.Context, in *HelloRequest, opts ...grpc.CallOption) (*HelloReply, error)
 }
@@ -39,16 +36,6 @@ type fetcherClient struct {
 
 func NewFetcherClient(cc grpc.ClientConnInterface) FetcherClient {
 	return &fetcherClient{cc}
-}
-
-func (c *fetcherClient) FetchAndStore(ctx context.Context, in *FetchAndStoreRequest, opts ...grpc.CallOption) (*FetchAndStoreReply, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(FetchAndStoreReply)
-	err := c.cc.Invoke(ctx, Fetcher_FetchAndStore_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
 }
 
 func (c *fetcherClient) Hello(ctx context.Context, in *HelloRequest, opts ...grpc.CallOption) (*HelloReply, error) {
@@ -65,8 +52,6 @@ func (c *fetcherClient) Hello(ctx context.Context, in *HelloRequest, opts ...grp
 // All implementations must embed UnimplementedFetcherServer
 // for forward compatibility.
 type FetcherServer interface {
-	// 采集并存储
-	FetchAndStore(context.Context, *FetchAndStoreRequest) (*FetchAndStoreReply, error)
 	// Hello GET 方法
 	Hello(context.Context, *HelloRequest) (*HelloReply, error)
 	mustEmbedUnimplementedFetcherServer()
@@ -79,9 +64,6 @@ type FetcherServer interface {
 // pointer dereference when methods are called.
 type UnimplementedFetcherServer struct{}
 
-func (UnimplementedFetcherServer) FetchAndStore(context.Context, *FetchAndStoreRequest) (*FetchAndStoreReply, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method FetchAndStore not implemented")
-}
 func (UnimplementedFetcherServer) Hello(context.Context, *HelloRequest) (*HelloReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Hello not implemented")
 }
@@ -104,24 +86,6 @@ func RegisterFetcherServer(s grpc.ServiceRegistrar, srv FetcherServer) {
 		t.testEmbeddedByValue()
 	}
 	s.RegisterService(&Fetcher_ServiceDesc, srv)
-}
-
-func _Fetcher_FetchAndStore_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(FetchAndStoreRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(FetcherServer).FetchAndStore(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Fetcher_FetchAndStore_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(FetcherServer).FetchAndStore(ctx, req.(*FetchAndStoreRequest))
-	}
-	return interceptor(ctx, in, info, handler)
 }
 
 func _Fetcher_Hello_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -149,10 +113,6 @@ var Fetcher_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "Fetcher",
 	HandlerType: (*FetcherServer)(nil),
 	Methods: []grpc.MethodDesc{
-		{
-			MethodName: "FetchAndStore",
-			Handler:    _Fetcher_FetchAndStore_Handler,
-		},
 		{
 			MethodName: "Hello",
 			Handler:    _Fetcher_Hello_Handler,

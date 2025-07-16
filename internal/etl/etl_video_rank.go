@@ -112,7 +112,7 @@ func (p *VideoRankProcessor) Process(ctx context.Context, rawData *v1.SourceData
 		pubTime, _ := time.Parse("2006/01/02 15:04:05", item.AwemeDto.AwemePubTime)
 		// 从 source_data 获取榜单周期和日期信息
 		period := strings.Replace(rawData.DataType, "video_rank_", "", 1)
-		datecode := rawData.EntityId
+		datecode := rawData.Date
 		startDate, endDate, rankDate := getPeriodDates(period, datecode)
 
 		vr := &data.VideoRank{

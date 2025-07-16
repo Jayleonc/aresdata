@@ -25,7 +25,6 @@ import (
 
 // wireApp init kratos application.
 func wireApp(confServer *conf.Server, confData *conf.Data, logger log.Logger) (*kratos.App, func(), error) {
-	grpcServer := server.NewGRPCServer(confServer, logger)
 	cmdable := data.NewRedisClient(confData)
 	dataData, cleanup, err := data.NewData(confData, cmdable, logger)
 	if err != nil {
@@ -35,7 +34,11 @@ func wireApp(confServer *conf.Server, confData *conf.Data, logger log.Logger) (*
 	feiguaFetcher := fetcher.NewFeiguaFetcher(confData, logger)
 	fetcherUsecase := biz.NewFetcherUsecase(sourceDataRepo, feiguaFetcher, logger)
 	fetcherService := service.NewFetcherService(fetcherUsecase, logger)
-	httpServer := server.NewHTTPServer(confServer, fetcherService, logger)
+	videoRankRepo := data.NewVideoRankRepo(dataData)
+	videoRankUsecase := biz.NewVideoRankUsecase(videoRankRepo)
+	videoRankService := service.NewVideoRankService(videoRankUsecase)
+	grpcServer := server.NewGRPCServer(confServer, fetcherService, videoRankService, logger)
+	httpServer := server.NewHTTPServer(confServer, fetcherService, videoRankService, logger)
 	app := newApp(logger, grpcServer, httpServer)
 	return app, func() {
 		cleanup()

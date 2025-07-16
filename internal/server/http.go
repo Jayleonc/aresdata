@@ -10,7 +10,7 @@ import (
 )
 
 // NewHTTPServer new an HTTP server.
-func NewHTTPServer(c *conf.Server, fetcher *service.FetcherService, logger log.Logger) *http.Server {
+func NewHTTPServer(c *conf.Server, fetcher *service.FetcherService, videoRank *service.VideoRankService, logger log.Logger) *http.Server {
 	var opts = []http.ServerOption{
 		http.Middleware(
 			recovery.Recovery(),
@@ -27,5 +27,13 @@ func NewHTTPServer(c *conf.Server, fetcher *service.FetcherService, logger log.L
 	}
 	srv := http.NewServer(opts...)
 	v1.RegisterFetcherHTTPServer(srv, fetcher)
+	v1.RegisterVideoRankHTTPServer(srv, videoRank)
+
+	// 添加 OpenAPI 文档路由
+	srv.Handle("/openapi.yaml", OpenAPIHandler("./openapi.yaml"))
+
+	// 添加 Swagger UI 静态文件路由
+	srv.Handle("/swagger-ui/", SwaggerUIHandler())
+
 	return srv
 }

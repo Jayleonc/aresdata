@@ -29,12 +29,21 @@ func (s *VideoRankService) GetVideoRank(ctx context.Context, req *pb.VideoRankQu
 	return &pb.VideoRankQueryResponse{Rank: rank}, nil
 }
 
-// BatchGetVideoRank 批量查询视频榜
-// BatchGetVideoRank 批量查询视频榜单
-func (s *VideoRankService) BatchGetVideoRank(ctx context.Context, req *pb.BatchVideoRankQueryRequest) (*pb.BatchVideoRankQueryResponse, error) {
-	ranks, err := s.uc.BatchGetVideoRank(ctx, req.AwemeIds, req.RankType, req.RankDate)
+// ListVideoRank 分页查询视频榜单
+func (s *VideoRankService) ListVideoRank(ctx context.Context, req *pb.ListVideoRankRequest) (*pb.ListVideoRankResponse, error) {
+	if req.Page == nil {
+		req.Page = &pb.PageRequest{Page: 1, Size: 10} // 默认值
+	}
+	if req.Page.Size == 0 {
+		req.Page.Size = 10
+	}
+
+	ranks, total, err := s.uc.ListVideoRank(ctx, int(req.Page.Page), int(req.Page.Size), req.RankType, req.RankDate)
 	if err != nil {
 		return nil, err
 	}
-	return &pb.BatchVideoRankQueryResponse{Ranks: ranks}, nil
+	return &pb.ListVideoRankResponse{
+		Page:  &pb.PageResponse{Total: total},
+		Ranks: ranks,
+	}, nil
 }

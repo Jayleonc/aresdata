@@ -49,6 +49,7 @@ func (uc *FetcherUsecase) FetchAndStoreVideoRank(ctx context.Context, period, da
 		EntityId:     fmt.Sprintf("%s_%s", period, datecode),
 		Status:       0, // 初始状态为 未处理
 		FetchedAt:    timestamppb.New(time.Now()),
+		Date:         datecode,
 	}
 
 	// 3. 调用Repo存储到数据库

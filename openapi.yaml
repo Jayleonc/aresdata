@@ -6,25 +6,6 @@ info:
     title: ""
     version: 0.0.1
 paths:
-    /v1/fetch:
-        post:
-            tags:
-                - Fetcher
-            description: 采集并存储
-            operationId: Fetcher_FetchAndStore
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/.FetchAndStoreRequest'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/.FetchAndStoreReply'
     /v1/hello:
         get:
             tags:
@@ -64,25 +45,29 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/.VideoRankQueryResponse'
-    /v1/video_rank/List:
+    /v1/video_rank/list:
         get:
             tags:
                 - VideoRank
-            description: 批量查询视频榜单信息
-            operationId: VideoRank_BatchGetVideoRank
+            description: 分页查询视频榜单信息
+            operationId: VideoRank_ListVideoRank
             parameters:
-                - name: awemeIds
+                - name: page.page
                   in: query
                   schema:
-                    type: array
-                    items:
-                        type: string
+                    type: string
+                - name: page.size
+                  in: query
+                  schema:
+                    type: string
                 - name: rankType
                   in: query
+                  description: 排名类型，例如"day", "week", "month"
                   schema:
                     type: string
                 - name: rankDate
                   in: query
+                  description: 排名日期，格式如"20250716"
                   schema:
                     type: string
             responses:
@@ -91,151 +76,160 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/.BatchVideoRankQueryResponse'
+                                $ref: '#/components/schemas/.ListVideoRankResponse'
 components:
     schemas:
-        .BatchVideoRankQueryResponse:
-            type: object
-            properties:
-                ranks:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/.VideoRankDTO'
-            description: 批量查询响应
-        .FetchAndStoreReply:
-            type: object
-            properties:
-                savedData:
-                    $ref: '#/components/schemas/.SourceData'
-        .FetchAndStoreRequest:
-            type: object
-            properties:
-                task:
-                    $ref: '#/components/schemas/.Task'
         .HelloReply:
             type: object
             properties:
                 message:
                     type: string
             description: Hello 方法的响应
-        .SourceData:
+        .ListVideoRankResponse:
             type: object
             properties:
-                id:
-                    type: string
-                providerName:
-                    type: string
-                dataType:
-                    type: string
-                rawContent:
-                    type: string
-                fetchedAt:
-                    type: string
-                    format: date-time
-                status:
-                    type: integer
-                    format: int32
-                entityId:
-                    type: string
-            description: 原始数据条目
-        .Task:
+                page:
+                    allOf:
+                        - $ref: '#/components/schemas/.PageResponse'
+                    description: 嵌入分页响应
+                ranks:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/.VideoRankDTO'
+                    description: 视频榜单信息列表
+            description: 分页查询响应
+        .PageResponse:
             type: object
             properties:
-                taskId:
+                total:
                     type: string
-                provider:
-                    type: integer
-                    format: enum
-                dataType:
-                    type: string
-                payload:
-                    type: string
-            description: 采集任务
+            description: 分页响应
         .VideoRankDTO:
             type: object
             properties:
                 id:
                     type: string
+                    description: 主键ID
                 createdAt:
                     type: string
+                    description: 创建时间
                     format: date-time
                 rankNum:
                     type: integer
-                    description: 榜单核心
+                    description: |-
+                        榜单核心
+                         榜单排名
                     format: int32
                 periodType:
                     type: string
+                    description: 榜单周期类型，如日榜、周榜
                 rankDate:
                     type: string
+                    description: 榜单日期
                 startDate:
                     type: string
+                    description: 榜单开始日期
                 endDate:
                     type: string
+                    description: 榜单结束日期
                 awemeId:
                     type: string
-                    description: 视频信息
+                    description: |-
+                        视频信息
+                         抖音视频ID
                 awemeCoverUrl:
                     type: string
+                    description: 视频封面URL
                 awemeDesc:
                     type: string
+                    description: 视频描述
                 awemePubTime:
                     type: string
+                    description: 视频发布时间
                     format: date-time
                 awemeShareUrl:
                     type: string
+                    description: 视频分享链接
                 durationStr:
                     type: string
+                    description: 视频时长字符串
                 awemeScoreStr:
                     type: string
+                    description: 视频分数字符串
                 goodsId:
                     type: string
-                    description: 商品信息
+                    description: |-
+                        商品信息
+                         商品ID
                 goodsTitle:
                     type: string
+                    description: 商品标题
                 goodsCoverUrl:
                     type: string
+                    description: 商品封面URL
                 goodsPriceRange:
                     type: string
+                    description: 商品价格区间
                 goodsPrice:
                     type: number
+                    description: 商品价格
                     format: double
                 cosRatio:
                     type: string
+                    description: 成本比例
                 commissionPrice:
                     type: string
+                    description: 佣金金额
                 shopName:
                     type: string
+                    description: 店铺名称
                 brandName:
                     type: string
+                    description: 品牌名称
                 categoryNames:
                     type: string
+                    description: 商品类目
                 bloggerId:
                     type: integer
-                    description: 博主信息
+                    description: |-
+                        博主信息
+                         博主ID
                     format: int32
                 bloggerUid:
                     type: string
+                    description: 博主UID
                 bloggerName:
                     type: string
+                    description: 博主昵称
                 bloggerAvatar:
                     type: string
+                    description: 博主头像
                 bloggerFansNum:
                     type: integer
+                    description: 博主粉丝数
                     format: int32
                 bloggerTag:
                     type: string
+                    description: 博主标签
                 salesCountStr:
                     type: string
-                    description: 榜单统计
+                    description: |-
+                        榜单统计
+                         销量字符串
                 totalSalesStr:
                     type: string
+                    description: 累计销量字符串
                 likeCountIncStr:
                     type: string
+                    description: 点赞增量字符串
                 playCountIncStr:
                     type: string
+                    description: 播放增量字符串
                 rawJson:
                     type: string
-                    description: 元数据
+                    description: |-
+                        元数据
+                         原始元数据JSON
             description: 榜单视频榜结构
         .VideoRankQueryResponse:
             type: object

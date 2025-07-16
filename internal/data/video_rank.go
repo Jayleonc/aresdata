@@ -15,8 +15,8 @@ type VideoRankRepo interface {
 	BatchCreate(ctx context.Context, ranks []*v1.VideoRankDTO) error
 	// 查询单个视频榜单
 	GetByAwemeID(ctx context.Context, awemeID, rankType, rankDate string) (*v1.VideoRankDTO, error)
-	// 批量查询视频榜单
-	BatchGetByAwemeIDs(ctx context.Context, awemeIDs []string, rankType, rankDate string) ([]*v1.VideoRankDTO, error)
+	// 分页查询视频榜单
+	ListPage(ctx context.Context, page, size int, rankType, rankDate string) ([]*v1.VideoRankDTO, int64, error)
 }
 
 // VideoRank is the GORM model for storing video ranking data.
@@ -85,18 +85,38 @@ func (r *videoRankRepo) GetByAwemeID(ctx context.Context, awemeID, rankType, ran
 	return CopyVideoRankToDTO(&model), nil
 }
 
-// BatchGetByAwemeIDs 批量查询视频榜单
-func (r *videoRankRepo) BatchGetByAwemeIDs(ctx context.Context, awemeIDs []string, rankType, rankDate string) ([]*v1.VideoRankDTO, error) {
-	var models []VideoRank
-	err := r.db.WithContext(ctx).Where("aweme_id IN ? AND period_type = ? AND rank_date = ?", awemeIDs, rankType, rankDate).Find(&models).Error
-	if err != nil {
-		return nil, err
+// ListPage 分页查询视频榜单
+func (r *videoRankRepo) ListPage(ctx context.Context, page, size int, rankType, rankDate string) ([]*v1.VideoRankDTO, int64, error) {
+	var models []*VideoRank
+	var total int64
+
+	db := r.db.WithContext(ctx).Model(&VideoRank{})
+
+	// 添加查询条件
+	if rankType != "" {
+		db = db.Where("period_type = ?", rankType)
 	}
+	if rankDate != "" {
+		db = db.Where("rank_date = ?", rankDate)
+	}
+
+	// 计算总数
+	if err := db.Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+
+	// 分页查询
+	offset := (page - 1) * size
+	if err := db.Offset(offset).Limit(size).Order("id asc").Find(&models).Error; err != nil {
+		return nil, 0, err
+	}
+
 	result := make([]*v1.VideoRankDTO, 0, len(models))
 	for _, m := range models {
-		result = append(result, CopyVideoRankToDTO(&m))
+		result = append(result, CopyVideoRankToDTO(m))
 	}
-	return result, nil
+
+	return result, total, nil
 }
 
 // BatchCreate inserts multiple VideoRank records into the database.
@@ -159,6 +179,7 @@ func CopyVideoRankToDTO(do *VideoRank) *v1.VideoRankDTO {
 		return nil
 	}
 	return &v1.VideoRankDTO{
+		Id:              int64(do.ID),
 		RankNum:         int32(do.RankNum),
 		PeriodType:      do.PeriodType,
 		RankDate:        do.RankDate,

@@ -22,7 +22,7 @@ func (uc *VideoRankUsecase) GetVideoRank(ctx context.Context, awemeID, rankType,
 	return uc.repo.GetByAwemeID(ctx, awemeID, rankType, rankDate)
 }
 
-// BatchGetVideoRank 批量查询视频榜单
-func (uc *VideoRankUsecase) BatchGetVideoRank(ctx context.Context, awemeIDs []string, rankType, rankDate string) ([]*v1.VideoRankDTO, error) {
-	return uc.repo.BatchGetByAwemeIDs(ctx, awemeIDs, rankType, rankDate)
+// ListVideoRank 分页查询视频榜单
+func (uc *VideoRankUsecase) ListVideoRank(ctx context.Context, page, size int, rankType, rankDate string) ([]*v1.VideoRankDTO, int64, error) {
+	return uc.repo.ListPage(ctx, page, size, rankType, rankDate)
 }

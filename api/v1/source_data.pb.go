@@ -32,6 +32,7 @@ type SourceData struct {
 	FetchedAt     *timestamppb.Timestamp `protobuf:"bytes,5,opt,name=fetched_at,json=fetchedAt,proto3" json:"fetched_at,omitempty"`
 	Status        int32                  `protobuf:"varint,6,opt,name=status,proto3" json:"status,omitempty"`
 	EntityId      string                 `protobuf:"bytes,7,opt,name=entity_id,json=entityId,proto3" json:"entity_id,omitempty"`
+	Date          string                 `protobuf:"bytes,8,opt,name=date,proto3" json:"date,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -115,11 +116,18 @@ func (x *SourceData) GetEntityId() string {
 	return ""
 }
 
+func (x *SourceData) GetDate() string {
+	if x != nil {
+		return x.Date
+	}
+	return ""
+}
+
 var File_v1_source_data_proto protoreflect.FileDescriptor
 
 const file_v1_source_data_proto_rawDesc = "" +
 	"\n" +
-	"\x14v1/source_data.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xef\x01\n" +
+	"\x14v1/source_data.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\x83\x02\n" +
 	"\n" +
 	"SourceData\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12#\n" +
@@ -130,7 +138,8 @@ const file_v1_source_data_proto_rawDesc = "" +
 	"\n" +
 	"fetched_at\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampR\tfetchedAt\x12\x16\n" +
 	"\x06status\x18\x06 \x01(\x05R\x06status\x12\x1b\n" +
-	"\tentity_id\x18\a \x01(\tR\bentityIdB\x14Z\x12aresdata/api/v1;v1b\x06proto3"
+	"\tentity_id\x18\a \x01(\tR\bentityId\x12\x12\n" +
+	"\x04date\x18\b \x01(\tR\x04dateB\x14Z\x12aresdata/api/v1;v1b\x06proto3"
 
 var (
 	file_v1_source_data_proto_rawDescOnce sync.Once

@@ -16,7 +16,7 @@ data:
     write_timeout: 0.2s
   feigua:
     baseUrl: "http://118.31.20.20:8080"
-    cookie: "PHPSESSID=tdn5sqcnh1ub2413v9n6ffdpgt; body_collapsed=1"
+    cookie: "PHPSESSID=tdn5sqcnh1ub2413v9n6ffdpgt; body_collapsed=0"
 
 # 在文件末尾追加
 job:

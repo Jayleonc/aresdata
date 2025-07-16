@@ -27,6 +27,7 @@ type SourceData struct {
 	EntityId     string    `gorm:"type:varchar(255);not null;default:''"`
 	Status       int32     `gorm:"not null;default:0"` // 0: unprocessed, 1: processed, -1: error
 	FetchedAt    time.Time `gorm:"autoCreateTime"`
+	Date         string    `gorm:"type:varchar(255);not null;default:''"`
 }
 
 func (SourceData) TableName() string {
@@ -60,6 +61,7 @@ func copySourceDataToDO(s *v1.SourceData) *SourceData {
 		EntityId:     s.EntityId,
 		Status:       s.Status,
 		FetchedAt:    fetchedAt,
+		Date:         s.Date,
 	}
 }
 
@@ -72,6 +74,7 @@ func copySourceDataToDTO(s *SourceData) *v1.SourceData {
 		EntityId:     s.EntityId,
 		Status:       s.Status,
 		FetchedAt:    timestamppb.New(s.FetchedAt),
+		Date:         s.Date,
 	}
 }
 

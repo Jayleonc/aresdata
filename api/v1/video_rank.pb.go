@@ -129,30 +129,33 @@ func (x *VideoRankQueryResponse) GetRank() *VideoRankDTO {
 	return nil
 }
 
-// 批量查询请求
-type BatchVideoRankQueryRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	AwemeIds      []string               `protobuf:"bytes,1,rep,name=aweme_ids,json=awemeIds,proto3" json:"aweme_ids,omitempty"` // 批量视频ID
-	RankType      string                 `protobuf:"bytes,2,opt,name=rank_type,json=rankType,proto3" json:"rank_type,omitempty"` // 排名类型
-	RankDate      string                 `protobuf:"bytes,3,opt,name=rank_date,json=rankDate,proto3" json:"rank_date,omitempty"` // 排名日期
+// 分页查询请求
+type ListVideoRankRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 嵌入分页请求
+	Page *PageRequest `protobuf:"bytes,1,opt,name=page,proto3" json:"page,omitempty"`
+	// 排名类型，例如"day", "week", "month"
+	RankType string `protobuf:"bytes,2,opt,name=rank_type,json=rankType,proto3" json:"rank_type,omitempty"`
+	// 排名日期，格式如"20250716"
+	RankDate      string `protobuf:"bytes,3,opt,name=rank_date,json=rankDate,proto3" json:"rank_date,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *BatchVideoRankQueryRequest) Reset() {
-	*x = BatchVideoRankQueryRequest{}
+func (x *ListVideoRankRequest) Reset() {
+	*x = ListVideoRankRequest{}
 	mi := &file_v1_video_rank_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *BatchVideoRankQueryRequest) String() string {
+func (x *ListVideoRankRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*BatchVideoRankQueryRequest) ProtoMessage() {}
+func (*ListVideoRankRequest) ProtoMessage() {}
 
-func (x *BatchVideoRankQueryRequest) ProtoReflect() protoreflect.Message {
+func (x *ListVideoRankRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_v1_video_rank_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -164,54 +167,57 @@ func (x *BatchVideoRankQueryRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use BatchVideoRankQueryRequest.ProtoReflect.Descriptor instead.
-func (*BatchVideoRankQueryRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use ListVideoRankRequest.ProtoReflect.Descriptor instead.
+func (*ListVideoRankRequest) Descriptor() ([]byte, []int) {
 	return file_v1_video_rank_proto_rawDescGZIP(), []int{2}
 }
 
-func (x *BatchVideoRankQueryRequest) GetAwemeIds() []string {
+func (x *ListVideoRankRequest) GetPage() *PageRequest {
 	if x != nil {
-		return x.AwemeIds
+		return x.Page
 	}
 	return nil
 }
 
-func (x *BatchVideoRankQueryRequest) GetRankType() string {
+func (x *ListVideoRankRequest) GetRankType() string {
 	if x != nil {
 		return x.RankType
 	}
 	return ""
 }
 
-func (x *BatchVideoRankQueryRequest) GetRankDate() string {
+func (x *ListVideoRankRequest) GetRankDate() string {
 	if x != nil {
 		return x.RankDate
 	}
 	return ""
 }
 
-// 批量查询响应
-type BatchVideoRankQueryResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Ranks         []*VideoRankDTO        `protobuf:"bytes,1,rep,name=ranks,proto3" json:"ranks,omitempty"` // 批量视频榜单信息
+// 分页查询响应
+type ListVideoRankResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 嵌入分页响应
+	Page *PageResponse `protobuf:"bytes,1,opt,name=page,proto3" json:"page,omitempty"`
+	// 视频榜单信息列表
+	Ranks         []*VideoRankDTO `protobuf:"bytes,2,rep,name=ranks,proto3" json:"ranks,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *BatchVideoRankQueryResponse) Reset() {
-	*x = BatchVideoRankQueryResponse{}
+func (x *ListVideoRankResponse) Reset() {
+	*x = ListVideoRankResponse{}
 	mi := &file_v1_video_rank_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *BatchVideoRankQueryResponse) String() string {
+func (x *ListVideoRankResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*BatchVideoRankQueryResponse) ProtoMessage() {}
+func (*ListVideoRankResponse) ProtoMessage() {}
 
-func (x *BatchVideoRankQueryResponse) ProtoReflect() protoreflect.Message {
+func (x *ListVideoRankResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_v1_video_rank_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -223,12 +229,19 @@ func (x *BatchVideoRankQueryResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use BatchVideoRankQueryResponse.ProtoReflect.Descriptor instead.
-func (*BatchVideoRankQueryResponse) Descriptor() ([]byte, []int) {
+// Deprecated: Use ListVideoRankResponse.ProtoReflect.Descriptor instead.
+func (*ListVideoRankResponse) Descriptor() ([]byte, []int) {
 	return file_v1_video_rank_proto_rawDescGZIP(), []int{3}
 }
 
-func (x *BatchVideoRankQueryResponse) GetRanks() []*VideoRankDTO {
+func (x *ListVideoRankResponse) GetPage() *PageResponse {
+	if x != nil {
+		return x.Page
+	}
+	return nil
+}
+
+func (x *ListVideoRankResponse) GetRanks() []*VideoRankDTO {
 	if x != nil {
 		return x.Ranks
 	}
@@ -237,47 +250,82 @@ func (x *BatchVideoRankQueryResponse) GetRanks() []*VideoRankDTO {
 
 // 榜单视频榜结构
 type VideoRankDTO struct {
-	state     protoimpl.MessageState `protogen:"open.v1"`
-	Id        int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 主键ID
+	Id int64 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	// 创建时间
 	CreatedAt *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	// 榜单核心
-	RankNum    int32  `protobuf:"varint,3,opt,name=rank_num,json=rankNum,proto3" json:"rank_num,omitempty"`
+	// 榜单排名
+	RankNum int32 `protobuf:"varint,3,opt,name=rank_num,json=rankNum,proto3" json:"rank_num,omitempty"`
+	// 榜单周期类型，如日榜、周榜
 	PeriodType string `protobuf:"bytes,4,opt,name=period_type,json=periodType,proto3" json:"period_type,omitempty"`
-	RankDate   string `protobuf:"bytes,5,opt,name=rank_date,json=rankDate,proto3" json:"rank_date,omitempty"`
-	StartDate  string `protobuf:"bytes,6,opt,name=start_date,json=startDate,proto3" json:"start_date,omitempty"`
-	EndDate    string `protobuf:"bytes,7,opt,name=end_date,json=endDate,proto3" json:"end_date,omitempty"`
+	// 榜单日期
+	RankDate string `protobuf:"bytes,5,opt,name=rank_date,json=rankDate,proto3" json:"rank_date,omitempty"`
+	// 榜单开始日期
+	StartDate string `protobuf:"bytes,6,opt,name=start_date,json=startDate,proto3" json:"start_date,omitempty"`
+	// 榜单结束日期
+	EndDate string `protobuf:"bytes,7,opt,name=end_date,json=endDate,proto3" json:"end_date,omitempty"`
 	// 视频信息
-	AwemeId       string                 `protobuf:"bytes,8,opt,name=aweme_id,json=awemeId,proto3" json:"aweme_id,omitempty"`
-	AwemeCoverUrl string                 `protobuf:"bytes,9,opt,name=aweme_cover_url,json=awemeCoverUrl,proto3" json:"aweme_cover_url,omitempty"`
-	AwemeDesc     string                 `protobuf:"bytes,10,opt,name=aweme_desc,json=awemeDesc,proto3" json:"aweme_desc,omitempty"`
-	AwemePubTime  *timestamppb.Timestamp `protobuf:"bytes,11,opt,name=aweme_pub_time,json=awemePubTime,proto3" json:"aweme_pub_time,omitempty"`
-	AwemeShareUrl string                 `protobuf:"bytes,12,opt,name=aweme_share_url,json=awemeShareUrl,proto3" json:"aweme_share_url,omitempty"`
-	DurationStr   string                 `protobuf:"bytes,13,opt,name=duration_str,json=durationStr,proto3" json:"duration_str,omitempty"`
-	AwemeScoreStr string                 `protobuf:"bytes,14,opt,name=aweme_score_str,json=awemeScoreStr,proto3" json:"aweme_score_str,omitempty"`
+	// 抖音视频ID
+	AwemeId string `protobuf:"bytes,8,opt,name=aweme_id,json=awemeId,proto3" json:"aweme_id,omitempty"`
+	// 视频封面URL
+	AwemeCoverUrl string `protobuf:"bytes,9,opt,name=aweme_cover_url,json=awemeCoverUrl,proto3" json:"aweme_cover_url,omitempty"`
+	// 视频描述
+	AwemeDesc string `protobuf:"bytes,10,opt,name=aweme_desc,json=awemeDesc,proto3" json:"aweme_desc,omitempty"`
+	// 视频发布时间
+	AwemePubTime *timestamppb.Timestamp `protobuf:"bytes,11,opt,name=aweme_pub_time,json=awemePubTime,proto3" json:"aweme_pub_time,omitempty"`
+	// 视频分享链接
+	AwemeShareUrl string `protobuf:"bytes,12,opt,name=aweme_share_url,json=awemeShareUrl,proto3" json:"aweme_share_url,omitempty"`
+	// 视频时长字符串
+	DurationStr string `protobuf:"bytes,13,opt,name=duration_str,json=durationStr,proto3" json:"duration_str,omitempty"`
+	// 视频分数字符串
+	AwemeScoreStr string `protobuf:"bytes,14,opt,name=aweme_score_str,json=awemeScoreStr,proto3" json:"aweme_score_str,omitempty"`
 	// 商品信息
-	GoodsId         string  `protobuf:"bytes,15,opt,name=goods_id,json=goodsId,proto3" json:"goods_id,omitempty"`
-	GoodsTitle      string  `protobuf:"bytes,16,opt,name=goods_title,json=goodsTitle,proto3" json:"goods_title,omitempty"`
-	GoodsCoverUrl   string  `protobuf:"bytes,17,opt,name=goods_cover_url,json=goodsCoverUrl,proto3" json:"goods_cover_url,omitempty"`
-	GoodsPriceRange string  `protobuf:"bytes,18,opt,name=goods_price_range,json=goodsPriceRange,proto3" json:"goods_price_range,omitempty"`
-	GoodsPrice      float64 `protobuf:"fixed64,19,opt,name=goods_price,json=goodsPrice,proto3" json:"goods_price,omitempty"`
-	CosRatio        string  `protobuf:"bytes,20,opt,name=cos_ratio,json=cosRatio,proto3" json:"cos_ratio,omitempty"`
-	CommissionPrice string  `protobuf:"bytes,21,opt,name=commission_price,json=commissionPrice,proto3" json:"commission_price,omitempty"`
-	ShopName        string  `protobuf:"bytes,22,opt,name=shop_name,json=shopName,proto3" json:"shop_name,omitempty"`
-	BrandName       string  `protobuf:"bytes,23,opt,name=brand_name,json=brandName,proto3" json:"brand_name,omitempty"`
-	CategoryNames   string  `protobuf:"bytes,24,opt,name=category_names,json=categoryNames,proto3" json:"category_names,omitempty"`
+	// 商品ID
+	GoodsId string `protobuf:"bytes,15,opt,name=goods_id,json=goodsId,proto3" json:"goods_id,omitempty"`
+	// 商品标题
+	GoodsTitle string `protobuf:"bytes,16,opt,name=goods_title,json=goodsTitle,proto3" json:"goods_title,omitempty"`
+	// 商品封面URL
+	GoodsCoverUrl string `protobuf:"bytes,17,opt,name=goods_cover_url,json=goodsCoverUrl,proto3" json:"goods_cover_url,omitempty"`
+	// 商品价格区间
+	GoodsPriceRange string `protobuf:"bytes,18,opt,name=goods_price_range,json=goodsPriceRange,proto3" json:"goods_price_range,omitempty"`
+	// 商品价格
+	GoodsPrice float64 `protobuf:"fixed64,19,opt,name=goods_price,json=goodsPrice,proto3" json:"goods_price,omitempty"`
+	// 成本比例
+	CosRatio string `protobuf:"bytes,20,opt,name=cos_ratio,json=cosRatio,proto3" json:"cos_ratio,omitempty"`
+	// 佣金金额
+	CommissionPrice string `protobuf:"bytes,21,opt,name=commission_price,json=commissionPrice,proto3" json:"commission_price,omitempty"`
+	// 店铺名称
+	ShopName string `protobuf:"bytes,22,opt,name=shop_name,json=shopName,proto3" json:"shop_name,omitempty"`
+	// 品牌名称
+	BrandName string `protobuf:"bytes,23,opt,name=brand_name,json=brandName,proto3" json:"brand_name,omitempty"`
+	// 商品类目
+	CategoryNames string `protobuf:"bytes,24,opt,name=category_names,json=categoryNames,proto3" json:"category_names,omitempty"`
 	// 博主信息
-	BloggerId      int32  `protobuf:"varint,25,opt,name=blogger_id,json=bloggerId,proto3" json:"blogger_id,omitempty"`
-	BloggerUid     string `protobuf:"bytes,26,opt,name=blogger_uid,json=bloggerUid,proto3" json:"blogger_uid,omitempty"`
-	BloggerName    string `protobuf:"bytes,27,opt,name=blogger_name,json=bloggerName,proto3" json:"blogger_name,omitempty"`
-	BloggerAvatar  string `protobuf:"bytes,28,opt,name=blogger_avatar,json=bloggerAvatar,proto3" json:"blogger_avatar,omitempty"`
-	BloggerFansNum int32  `protobuf:"varint,29,opt,name=blogger_fans_num,json=bloggerFansNum,proto3" json:"blogger_fans_num,omitempty"`
-	BloggerTag     string `protobuf:"bytes,30,opt,name=blogger_tag,json=bloggerTag,proto3" json:"blogger_tag,omitempty"`
+	// 博主ID
+	BloggerId int32 `protobuf:"varint,25,opt,name=blogger_id,json=bloggerId,proto3" json:"blogger_id,omitempty"`
+	// 博主UID
+	BloggerUid string `protobuf:"bytes,26,opt,name=blogger_uid,json=bloggerUid,proto3" json:"blogger_uid,omitempty"`
+	// 博主昵称
+	BloggerName string `protobuf:"bytes,27,opt,name=blogger_name,json=bloggerName,proto3" json:"blogger_name,omitempty"`
+	// 博主头像
+	BloggerAvatar string `protobuf:"bytes,28,opt,name=blogger_avatar,json=bloggerAvatar,proto3" json:"blogger_avatar,omitempty"`
+	// 博主粉丝数
+	BloggerFansNum int32 `protobuf:"varint,29,opt,name=blogger_fans_num,json=bloggerFansNum,proto3" json:"blogger_fans_num,omitempty"`
+	// 博主标签
+	BloggerTag string `protobuf:"bytes,30,opt,name=blogger_tag,json=bloggerTag,proto3" json:"blogger_tag,omitempty"`
 	// 榜单统计
-	SalesCountStr   string `protobuf:"bytes,31,opt,name=sales_count_str,json=salesCountStr,proto3" json:"sales_count_str,omitempty"`
-	TotalSalesStr   string `protobuf:"bytes,32,opt,name=total_sales_str,json=totalSalesStr,proto3" json:"total_sales_str,omitempty"`
+	// 销量字符串
+	SalesCountStr string `protobuf:"bytes,31,opt,name=sales_count_str,json=salesCountStr,proto3" json:"sales_count_str,omitempty"`
+	// 累计销量字符串
+	TotalSalesStr string `protobuf:"bytes,32,opt,name=total_sales_str,json=totalSalesStr,proto3" json:"total_sales_str,omitempty"`
+	// 点赞增量字符串
 	LikeCountIncStr string `protobuf:"bytes,33,opt,name=like_count_inc_str,json=likeCountIncStr,proto3" json:"like_count_inc_str,omitempty"`
+	// 播放增量字符串
 	PlayCountIncStr string `protobuf:"bytes,34,opt,name=play_count_inc_str,json=playCountIncStr,proto3" json:"play_count_inc_str,omitempty"`
 	// 元数据
+	// 原始元数据JSON
 	RawJson       string `protobuf:"bytes,35,opt,name=raw_json,json=rawJson,proto3" json:"raw_json,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -562,19 +610,20 @@ var File_v1_video_rank_proto protoreflect.FileDescriptor
 
 const file_v1_video_rank_proto_rawDesc = "" +
 	"\n" +
-	"\x13v1/video_rank.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1cgoogle/api/annotations.proto\"l\n" +
+	"\x13v1/video_rank.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1cgoogle/api/annotations.proto\x1a\rv1/page.proto\"l\n" +
 	"\x15VideoRankQueryRequest\x12\x19\n" +
 	"\baweme_id\x18\x01 \x01(\tR\aawemeId\x12\x1b\n" +
 	"\trank_type\x18\x02 \x01(\tR\brankType\x12\x1b\n" +
 	"\trank_date\x18\x03 \x01(\tR\brankDate\";\n" +
 	"\x16VideoRankQueryResponse\x12!\n" +
-	"\x04rank\x18\x01 \x01(\v2\r.VideoRankDTOR\x04rank\"s\n" +
-	"\x1aBatchVideoRankQueryRequest\x12\x1b\n" +
-	"\taweme_ids\x18\x01 \x03(\tR\bawemeIds\x12\x1b\n" +
+	"\x04rank\x18\x01 \x01(\v2\r.VideoRankDTOR\x04rank\"r\n" +
+	"\x14ListVideoRankRequest\x12 \n" +
+	"\x04page\x18\x01 \x01(\v2\f.PageRequestR\x04page\x12\x1b\n" +
 	"\trank_type\x18\x02 \x01(\tR\brankType\x12\x1b\n" +
-	"\trank_date\x18\x03 \x01(\tR\brankDate\"B\n" +
-	"\x1bBatchVideoRankQueryResponse\x12#\n" +
-	"\x05ranks\x18\x01 \x03(\v2\r.VideoRankDTOR\x05ranks\"\xf9\t\n" +
+	"\trank_date\x18\x03 \x01(\tR\brankDate\"_\n" +
+	"\x15ListVideoRankResponse\x12!\n" +
+	"\x04page\x18\x01 \x01(\v2\r.PageResponseR\x04page\x12#\n" +
+	"\x05ranks\x18\x02 \x03(\v2\r.VideoRankDTOR\x05ranks\"\xf9\t\n" +
 	"\fVideoRankDTO\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x129\n" +
 	"\n" +
@@ -621,10 +670,10 @@ const file_v1_video_rank_proto_rawDesc = "" +
 	"\x0ftotal_sales_str\x18  \x01(\tR\rtotalSalesStr\x12+\n" +
 	"\x12like_count_inc_str\x18! \x01(\tR\x0flikeCountIncStr\x12+\n" +
 	"\x12play_count_inc_str\x18\" \x01(\tR\x0fplayCountIncStr\x12\x19\n" +
-	"\braw_json\x18# \x01(\tR\arawJson2\xd1\x01\n" +
+	"\braw_json\x18# \x01(\tR\arawJson2\xc1\x01\n" +
 	"\tVideoRank\x12W\n" +
-	"\fGetVideoRank\x12\x16.VideoRankQueryRequest\x1a\x17.VideoRankQueryResponse\"\x16\x82\xd3\xe4\x93\x02\x10\x12\x0e/v1/video_rank\x12k\n" +
-	"\x11BatchGetVideoRank\x12\x1b.BatchVideoRankQueryRequest\x1a\x1c.BatchVideoRankQueryResponse\"\x1b\x82\xd3\xe4\x93\x02\x15\x12\x13/v1/video_rank/ListB\x14Z\x12aresdata/api/v1;v1b\x06proto3"
+	"\fGetVideoRank\x12\x16.VideoRankQueryRequest\x1a\x17.VideoRankQueryResponse\"\x16\x82\xd3\xe4\x93\x02\x10\x12\x0e/v1/video_rank\x12[\n" +
+	"\rListVideoRank\x12\x15.ListVideoRankRequest\x1a\x16.ListVideoRankResponse\"\x1b\x82\xd3\xe4\x93\x02\x15\x12\x13/v1/video_rank/listB\x14Z\x12aresdata/api/v1;v1b\x06proto3"
 
 var (
 	file_v1_video_rank_proto_rawDescOnce sync.Once
@@ -640,27 +689,31 @@ func file_v1_video_rank_proto_rawDescGZIP() []byte {
 
 var file_v1_video_rank_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
 var file_v1_video_rank_proto_goTypes = []any{
-	(*VideoRankQueryRequest)(nil),       // 0: VideoRankQueryRequest
-	(*VideoRankQueryResponse)(nil),      // 1: VideoRankQueryResponse
-	(*BatchVideoRankQueryRequest)(nil),  // 2: BatchVideoRankQueryRequest
-	(*BatchVideoRankQueryResponse)(nil), // 3: BatchVideoRankQueryResponse
-	(*VideoRankDTO)(nil),                // 4: VideoRankDTO
-	(*timestamppb.Timestamp)(nil),       // 5: google.protobuf.Timestamp
+	(*VideoRankQueryRequest)(nil),  // 0: VideoRankQueryRequest
+	(*VideoRankQueryResponse)(nil), // 1: VideoRankQueryResponse
+	(*ListVideoRankRequest)(nil),   // 2: ListVideoRankRequest
+	(*ListVideoRankResponse)(nil),  // 3: ListVideoRankResponse
+	(*VideoRankDTO)(nil),           // 4: VideoRankDTO
+	(*PageRequest)(nil),            // 5: PageRequest
+	(*PageResponse)(nil),           // 6: PageResponse
+	(*timestamppb.Timestamp)(nil),  // 7: google.protobuf.Timestamp
 }
 var file_v1_video_rank_proto_depIdxs = []int32{
 	4, // 0: VideoRankQueryResponse.rank:type_name -> VideoRankDTO
-	4, // 1: BatchVideoRankQueryResponse.ranks:type_name -> VideoRankDTO
-	5, // 2: VideoRankDTO.created_at:type_name -> google.protobuf.Timestamp
-	5, // 3: VideoRankDTO.aweme_pub_time:type_name -> google.protobuf.Timestamp
-	0, // 4: VideoRank.GetVideoRank:input_type -> VideoRankQueryRequest
-	2, // 5: VideoRank.BatchGetVideoRank:input_type -> BatchVideoRankQueryRequest
-	1, // 6: VideoRank.GetVideoRank:output_type -> VideoRankQueryResponse
-	3, // 7: VideoRank.BatchGetVideoRank:output_type -> BatchVideoRankQueryResponse
-	6, // [6:8] is the sub-list for method output_type
-	4, // [4:6] is the sub-list for method input_type
-	4, // [4:4] is the sub-list for extension type_name
-	4, // [4:4] is the sub-list for extension extendee
-	0, // [0:4] is the sub-list for field type_name
+	5, // 1: ListVideoRankRequest.page:type_name -> PageRequest
+	6, // 2: ListVideoRankResponse.page:type_name -> PageResponse
+	4, // 3: ListVideoRankResponse.ranks:type_name -> VideoRankDTO
+	7, // 4: VideoRankDTO.created_at:type_name -> google.protobuf.Timestamp
+	7, // 5: VideoRankDTO.aweme_pub_time:type_name -> google.protobuf.Timestamp
+	0, // 6: VideoRank.GetVideoRank:input_type -> VideoRankQueryRequest
+	2, // 7: VideoRank.ListVideoRank:input_type -> ListVideoRankRequest
+	1, // 8: VideoRank.GetVideoRank:output_type -> VideoRankQueryResponse
+	3, // 9: VideoRank.ListVideoRank:output_type -> ListVideoRankResponse
+	8, // [8:10] is the sub-list for method output_type
+	6, // [6:8] is the sub-list for method input_type
+	6, // [6:6] is the sub-list for extension type_name
+	6, // [6:6] is the sub-list for extension extendee
+	0, // [0:6] is the sub-list for field type_name
 }
 
 func init() { file_v1_video_rank_proto_init() }
@@ -668,6 +721,7 @@ func file_v1_video_rank_proto_init() {
 	if File_v1_video_rank_proto != nil {
 		return
 	}
+	file_v1_page_proto_init()
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{

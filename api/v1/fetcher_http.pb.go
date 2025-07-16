@@ -19,42 +19,16 @@ var _ = binding.EncodeURL
 
 const _ = http.SupportPackageIsVersion1
 
-const OperationFetcherFetchAndStore = "/Fetcher/FetchAndStore"
 const OperationFetcherHello = "/Fetcher/Hello"
 
 type FetcherHTTPServer interface {
-	// FetchAndStore 采集并存储
-	FetchAndStore(context.Context, *FetchAndStoreRequest) (*FetchAndStoreReply, error)
 	// Hello Hello GET 方法
 	Hello(context.Context, *HelloRequest) (*HelloReply, error)
 }
 
 func RegisterFetcherHTTPServer(s *http.Server, srv FetcherHTTPServer) {
 	r := s.Route("/")
-	r.POST("/v1/fetch", _Fetcher_FetchAndStore0_HTTP_Handler(srv))
 	r.GET("/v1/hello", _Fetcher_Hello0_HTTP_Handler(srv))
-}
-
-func _Fetcher_FetchAndStore0_HTTP_Handler(srv FetcherHTTPServer) func(ctx http.Context) error {
-	return func(ctx http.Context) error {
-		var in FetchAndStoreRequest
-		if err := ctx.Bind(&in); err != nil {
-			return err
-		}
-		if err := ctx.BindQuery(&in); err != nil {
-			return err
-		}
-		http.SetOperation(ctx, OperationFetcherFetchAndStore)
-		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.FetchAndStore(ctx, req.(*FetchAndStoreRequest))
-		})
-		out, err := h(ctx, &in)
-		if err != nil {
-			return err
-		}
-		reply := out.(*FetchAndStoreReply)
-		return ctx.Result(200, reply)
-	}
 }
 
 func _Fetcher_Hello0_HTTP_Handler(srv FetcherHTTPServer) func(ctx http.Context) error {
@@ -77,7 +51,6 @@ func _Fetcher_Hello0_HTTP_Handler(srv FetcherHTTPServer) func(ctx http.Context) 
 }
 
 type FetcherHTTPClient interface {
-	FetchAndStore(ctx context.Context, req *FetchAndStoreRequest, opts ...http.CallOption) (rsp *FetchAndStoreReply, err error)
 	Hello(ctx context.Context, req *HelloRequest, opts ...http.CallOption) (rsp *HelloReply, err error)
 }
 
@@ -87,19 +60,6 @@ type FetcherHTTPClientImpl struct {
 
 func NewFetcherHTTPClient(client *http.Client) FetcherHTTPClient {
 	return &FetcherHTTPClientImpl{client}
-}
-
-func (c *FetcherHTTPClientImpl) FetchAndStore(ctx context.Context, in *FetchAndStoreRequest, opts ...http.CallOption) (*FetchAndStoreReply, error) {
-	var out FetchAndStoreReply
-	pattern := "/v1/fetch"
-	path := binding.EncodeURL(pattern, in, false)
-	opts = append(opts, http.Operation(OperationFetcherFetchAndStore))
-	opts = append(opts, http.PathTemplate(pattern))
-	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return &out, nil
 }
 
 func (c *FetcherHTTPClientImpl) Hello(ctx context.Context, in *HelloRequest, opts ...http.CallOption) (*HelloReply, error) {

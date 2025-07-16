@@ -19,8 +19,8 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	VideoRank_GetVideoRank_FullMethodName      = "/VideoRank/GetVideoRank"
-	VideoRank_BatchGetVideoRank_FullMethodName = "/VideoRank/BatchGetVideoRank"
+	VideoRank_GetVideoRank_FullMethodName  = "/VideoRank/GetVideoRank"
+	VideoRank_ListVideoRank_FullMethodName = "/VideoRank/ListVideoRank"
 )
 
 // VideoRankClient is the client API for VideoRank service.
@@ -31,8 +31,8 @@ const (
 type VideoRankClient interface {
 	// 查询单个视频榜单信息
 	GetVideoRank(ctx context.Context, in *VideoRankQueryRequest, opts ...grpc.CallOption) (*VideoRankQueryResponse, error)
-	// 批量查询视频榜单信息
-	BatchGetVideoRank(ctx context.Context, in *BatchVideoRankQueryRequest, opts ...grpc.CallOption) (*BatchVideoRankQueryResponse, error)
+	// 分页查询视频榜单信息
+	ListVideoRank(ctx context.Context, in *ListVideoRankRequest, opts ...grpc.CallOption) (*ListVideoRankResponse, error)
 }
 
 type videoRankClient struct {
@@ -53,10 +53,10 @@ func (c *videoRankClient) GetVideoRank(ctx context.Context, in *VideoRankQueryRe
 	return out, nil
 }
 
-func (c *videoRankClient) BatchGetVideoRank(ctx context.Context, in *BatchVideoRankQueryRequest, opts ...grpc.CallOption) (*BatchVideoRankQueryResponse, error) {
+func (c *videoRankClient) ListVideoRank(ctx context.Context, in *ListVideoRankRequest, opts ...grpc.CallOption) (*ListVideoRankResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(BatchVideoRankQueryResponse)
-	err := c.cc.Invoke(ctx, VideoRank_BatchGetVideoRank_FullMethodName, in, out, cOpts...)
+	out := new(ListVideoRankResponse)
+	err := c.cc.Invoke(ctx, VideoRank_ListVideoRank_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -71,8 +71,8 @@ func (c *videoRankClient) BatchGetVideoRank(ctx context.Context, in *BatchVideoR
 type VideoRankServer interface {
 	// 查询单个视频榜单信息
 	GetVideoRank(context.Context, *VideoRankQueryRequest) (*VideoRankQueryResponse, error)
-	// 批量查询视频榜单信息
-	BatchGetVideoRank(context.Context, *BatchVideoRankQueryRequest) (*BatchVideoRankQueryResponse, error)
+	// 分页查询视频榜单信息
+	ListVideoRank(context.Context, *ListVideoRankRequest) (*ListVideoRankResponse, error)
 	mustEmbedUnimplementedVideoRankServer()
 }
 
@@ -86,8 +86,8 @@ type UnimplementedVideoRankServer struct{}
 func (UnimplementedVideoRankServer) GetVideoRank(context.Context, *VideoRankQueryRequest) (*VideoRankQueryResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetVideoRank not implemented")
 }
-func (UnimplementedVideoRankServer) BatchGetVideoRank(context.Context, *BatchVideoRankQueryRequest) (*BatchVideoRankQueryResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method BatchGetVideoRank not implemented")
+func (UnimplementedVideoRankServer) ListVideoRank(context.Context, *ListVideoRankRequest) (*ListVideoRankResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListVideoRank not implemented")
 }
 func (UnimplementedVideoRankServer) mustEmbedUnimplementedVideoRankServer() {}
 func (UnimplementedVideoRankServer) testEmbeddedByValue()                   {}
@@ -128,20 +128,20 @@ func _VideoRank_GetVideoRank_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
-func _VideoRank_BatchGetVideoRank_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(BatchVideoRankQueryRequest)
+func _VideoRank_ListVideoRank_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListVideoRankRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(VideoRankServer).BatchGetVideoRank(ctx, in)
+		return srv.(VideoRankServer).ListVideoRank(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: VideoRank_BatchGetVideoRank_FullMethodName,
+		FullMethod: VideoRank_ListVideoRank_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(VideoRankServer).BatchGetVideoRank(ctx, req.(*BatchVideoRankQueryRequest))
+		return srv.(VideoRankServer).ListVideoRank(ctx, req.(*ListVideoRankRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -158,8 +158,8 @@ var VideoRank_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _VideoRank_GetVideoRank_Handler,
 		},
 		{
-			MethodName: "BatchGetVideoRank",
-			Handler:    _VideoRank_BatchGetVideoRank_Handler,
+			MethodName: "ListVideoRank",
+			Handler:    _VideoRank_ListVideoRank_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

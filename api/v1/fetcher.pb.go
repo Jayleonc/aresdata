@@ -22,94 +22,6 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-type FetchAndStoreRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Task          *Task                  `protobuf:"bytes,1,opt,name=task,proto3" json:"task,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *FetchAndStoreRequest) Reset() {
-	*x = FetchAndStoreRequest{}
-	mi := &file_v1_fetcher_proto_msgTypes[0]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *FetchAndStoreRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*FetchAndStoreRequest) ProtoMessage() {}
-
-func (x *FetchAndStoreRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_fetcher_proto_msgTypes[0]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use FetchAndStoreRequest.ProtoReflect.Descriptor instead.
-func (*FetchAndStoreRequest) Descriptor() ([]byte, []int) {
-	return file_v1_fetcher_proto_rawDescGZIP(), []int{0}
-}
-
-func (x *FetchAndStoreRequest) GetTask() *Task {
-	if x != nil {
-		return x.Task
-	}
-	return nil
-}
-
-type FetchAndStoreReply struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	SavedData     *SourceData            `protobuf:"bytes,1,opt,name=saved_data,json=savedData,proto3" json:"saved_data,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *FetchAndStoreReply) Reset() {
-	*x = FetchAndStoreReply{}
-	mi := &file_v1_fetcher_proto_msgTypes[1]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *FetchAndStoreReply) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*FetchAndStoreReply) ProtoMessage() {}
-
-func (x *FetchAndStoreReply) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_fetcher_proto_msgTypes[1]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use FetchAndStoreReply.ProtoReflect.Descriptor instead.
-func (*FetchAndStoreReply) Descriptor() ([]byte, []int) {
-	return file_v1_fetcher_proto_rawDescGZIP(), []int{1}
-}
-
-func (x *FetchAndStoreReply) GetSavedData() *SourceData {
-	if x != nil {
-		return x.SavedData
-	}
-	return nil
-}
-
 // Hello 方法的请求
 type HelloRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
@@ -119,7 +31,7 @@ type HelloRequest struct {
 
 func (x *HelloRequest) Reset() {
 	*x = HelloRequest{}
-	mi := &file_v1_fetcher_proto_msgTypes[2]
+	mi := &file_v1_fetcher_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -131,7 +43,7 @@ func (x *HelloRequest) String() string {
 func (*HelloRequest) ProtoMessage() {}
 
 func (x *HelloRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_fetcher_proto_msgTypes[2]
+	mi := &file_v1_fetcher_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -144,7 +56,7 @@ func (x *HelloRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use HelloRequest.ProtoReflect.Descriptor instead.
 func (*HelloRequest) Descriptor() ([]byte, []int) {
-	return file_v1_fetcher_proto_rawDescGZIP(), []int{2}
+	return file_v1_fetcher_proto_rawDescGZIP(), []int{0}
 }
 
 // Hello 方法的响应
@@ -157,7 +69,7 @@ type HelloReply struct {
 
 func (x *HelloReply) Reset() {
 	*x = HelloReply{}
-	mi := &file_v1_fetcher_proto_msgTypes[3]
+	mi := &file_v1_fetcher_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -169,7 +81,7 @@ func (x *HelloReply) String() string {
 func (*HelloReply) ProtoMessage() {}
 
 func (x *HelloReply) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_fetcher_proto_msgTypes[3]
+	mi := &file_v1_fetcher_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -182,7 +94,7 @@ func (x *HelloReply) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use HelloReply.ProtoReflect.Descriptor instead.
 func (*HelloReply) Descriptor() ([]byte, []int) {
-	return file_v1_fetcher_proto_rawDescGZIP(), []int{3}
+	return file_v1_fetcher_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *HelloReply) GetMessage() string {
@@ -196,18 +108,12 @@ var File_v1_fetcher_proto protoreflect.FileDescriptor
 
 const file_v1_fetcher_proto_rawDesc = "" +
 	"\n" +
-	"\x10v1/fetcher.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x14v1/source_data.proto\x1a\rv1/task.proto\"1\n" +
-	"\x14FetchAndStoreRequest\x12\x19\n" +
-	"\x04task\x18\x01 \x01(\v2\x05.TaskR\x04task\"@\n" +
-	"\x12FetchAndStoreReply\x12*\n" +
-	"\n" +
-	"saved_data\x18\x01 \x01(\v2\v.SourceDataR\tsavedData\"\x0e\n" +
+	"\x10v1/fetcher.proto\x1a\x1cgoogle/api/annotations.proto\"\x0e\n" +
 	"\fHelloRequest\"&\n" +
 	"\n" +
 	"HelloReply\x12\x18\n" +
-	"\amessage\x18\x01 \x01(\tR\amessage2\x94\x01\n" +
-	"\aFetcher\x12Q\n" +
-	"\rFetchAndStore\x12\x15.FetchAndStoreRequest\x1a\x13.FetchAndStoreReply\"\x14\x82\xd3\xe4\x93\x02\x0e:\x01*\"\t/v1/fetch\x126\n" +
+	"\amessage\x18\x01 \x01(\tR\amessage2A\n" +
+	"\aFetcher\x126\n" +
 	"\x05Hello\x12\r.HelloRequest\x1a\v.HelloReply\"\x11\x82\xd3\xe4\x93\x02\v\x12\t/v1/helloB\x14Z\x12aresdata/api/v1;v1b\x06proto3"
 
 var (
@@ -222,27 +128,19 @@ func file_v1_fetcher_proto_rawDescGZIP() []byte {
 	return file_v1_fetcher_proto_rawDescData
 }
 
-var file_v1_fetcher_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
+var file_v1_fetcher_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
 var file_v1_fetcher_proto_goTypes = []any{
-	(*FetchAndStoreRequest)(nil), // 0: FetchAndStoreRequest
-	(*FetchAndStoreReply)(nil),   // 1: FetchAndStoreReply
-	(*HelloRequest)(nil),         // 2: HelloRequest
-	(*HelloReply)(nil),           // 3: HelloReply
-	(*Task)(nil),                 // 4: Task
-	(*SourceData)(nil),           // 5: SourceData
+	(*HelloRequest)(nil), // 0: HelloRequest
+	(*HelloReply)(nil),   // 1: HelloReply
 }
 var file_v1_fetcher_proto_depIdxs = []int32{
-	4, // 0: FetchAndStoreRequest.task:type_name -> Task
-	5, // 1: FetchAndStoreReply.saved_data:type_name -> SourceData
-	0, // 2: Fetcher.FetchAndStore:input_type -> FetchAndStoreRequest
-	2, // 3: Fetcher.Hello:input_type -> HelloRequest
-	1, // 4: Fetcher.FetchAndStore:output_type -> FetchAndStoreReply
-	3, // 5: Fetcher.Hello:output_type -> HelloReply
-	4, // [4:6] is the sub-list for method output_type
-	2, // [2:4] is the sub-list for method input_type
-	2, // [2:2] is the sub-list for extension type_name
-	2, // [2:2] is the sub-list for extension extendee
-	0, // [0:2] is the sub-list for field type_name
+	0, // 0: Fetcher.Hello:input_type -> HelloRequest
+	1, // 1: Fetcher.Hello:output_type -> HelloReply
+	1, // [1:2] is the sub-list for method output_type
+	0, // [0:1] is the sub-list for method input_type
+	0, // [0:0] is the sub-list for extension type_name
+	0, // [0:0] is the sub-list for extension extendee
+	0, // [0:0] is the sub-list for field type_name
 }
 
 func init() { file_v1_fetcher_proto_init() }
@@ -250,15 +148,13 @@ func file_v1_fetcher_proto_init() {
 	if File_v1_fetcher_proto != nil {
 		return
 	}
-	file_v1_source_data_proto_init()
-	file_v1_task_proto_init()
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_v1_fetcher_proto_rawDesc), len(file_v1_fetcher_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   4,
+			NumMessages:   2,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
