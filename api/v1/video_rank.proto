@@ -4,7 +4,7 @@ option go_package = "aresdata/api/v1;v1";
 
 import "google/protobuf/timestamp.proto";
 import "google/api/annotations.proto";
-import "api/v1/page.proto";
+import "v1/page.proto";
 
 
 // VideoRank 提供榜单视频排名查询服务

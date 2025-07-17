@@ -57,12 +57,14 @@ type FeiguaVideoRankItem struct {
 type VideoRankProcessor struct {
 	videoRankRepo  data.VideoRankRepo
 	sourceDataRepo data.SourceDataRepo
+	videoRepo      data.VideoRepo // 新增
 }
 
-func NewVideoRankProcessor(vrRepo data.VideoRankRepo, sdRepo data.SourceDataRepo) *VideoRankProcessor {
+func NewVideoRankProcessor(vrRepo data.VideoRankRepo, sdRepo data.SourceDataRepo, vRepo data.VideoRepo) *VideoRankProcessor {
 	return &VideoRankProcessor{
 		videoRankRepo:  vrRepo,
 		sourceDataRepo: sdRepo,
+		videoRepo:      vRepo, // 新增
 	}
 }
 
@@ -162,6 +164,25 @@ func (p *VideoRankProcessor) Process(ctx context.Context, rawData *v1.SourceData
 		//rawJSONBytes, _ := json.Marshal(item)
 		//vr.RawJson = string(rawJSONBytes)
 		ranksToCreate = append(ranksToCreate, vr)
+
+		// --- 维度表更新 ---
+		// 2a. 更新/插入 Video 维度表
+		videoDim := &data.Video{
+			AwemeId:       item.AwemeDto.AwemeId,
+			AwemeDesc:     item.AwemeDto.AwemeDesc,
+			AwemeCoverUrl: item.AwemeDto.AwemeCoverUrl,
+			AwemePubTime:  pubTime,
+			BloggerId:     toInt64(item.BloggerDto.BloggerId),
+		}
+		if err := p.videoRepo.Upsert(ctx, videoDim); err != nil {
+			// 记录错误，但通常不应该中断整个ETL流程
+			if pLogger, ok := any(p).(interface {
+				logf(format string, args ...any)
+			}); ok {
+				pLogger.logf("failed to upsert video dimension for awemeId %s: %v", videoDim.AwemeId, err)
+			}
+		}
+		// TODO: 2b. 将来在这里添加对 Product 和 Blogger 维度表的 Upsert
 	}
 
 	// Step 5: Batch insert

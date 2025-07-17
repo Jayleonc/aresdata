@@ -7,9 +7,11 @@ import (
 	"github.com/google/wire"
 )
 
+// ProviderSet 保持不变，wire 会自动注入 VideoRepo
 var ProviderSet = wire.NewSet(
-	NewETL,
+	NewETLUsecase,
 	NewVideoRankProcessor,
+	NewVideoTrendProcessor, // <-- 新增
 )
 
 // Processor defines a generic ETL processor.
@@ -17,31 +19,33 @@ type Processor interface {
 	Process(ctx context.Context, rawData *v1.SourceData) error
 }
 
-// ETL orchestrates ETL processors.
-type ETL struct {
+// ETLUsecase orchestrates ETL processors.
+type ETLUsecase struct {
 	sourceDataRepo data.SourceDataRepo
 	processors     map[string]Processor
 }
 
-func NewETL(sdRepo data.SourceDataRepo, vr *VideoRankProcessor) *ETL {
+// 修改构造函数签名，注入新的 processor
+func NewETLUsecase(sdRepo data.SourceDataRepo, vr *VideoRankProcessor, vt *VideoTrendProcessor) *ETLUsecase {
 	processors := map[string]Processor{
-		"video_rank_day": vr,
-		// 扩展
+		"video_rank_day":    vr,
+		"video_trend_daily": vt,
+		// 扩展...
 	}
 
-	return &ETL{
+	return &ETLUsecase{
 		sourceDataRepo: sdRepo,
 		processors:     processors,
 	}
 }
 
 // Run processes all unprocessed source data.
-func (u *ETL) Run(ctx context.Context, dataType string) error {
+func (u *ETLUsecase) Run(ctx context.Context, dataType string) error {
 	return u.RunWithType(ctx, dataType)
 }
 
 // RunWithType processes unprocessed source data, filtered by dataType if provided.
-func (u *ETL) RunWithType(ctx context.Context, dataType string) error {
+func (u *ETLUsecase) RunWithType(ctx context.Context, dataType string) error {
 	list, err := u.sourceDataRepo.FindUnprocessed(ctx)
 	if err != nil {
 		return err

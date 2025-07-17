@@ -33,8 +33,15 @@ type SourceData struct {
 	Status        int32                  `protobuf:"varint,6,opt,name=status,proto3" json:"status,omitempty"`
 	EntityId      string                 `protobuf:"bytes,7,opt,name=entity_id,json=entityId,proto3" json:"entity_id,omitempty"`
 	Date          string                 `protobuf:"bytes,8,opt,name=date,proto3" json:"date,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	ProcessingLog string                 `protobuf:"bytes,9,opt,name=processing_log,json=processingLog,proto3" json:"processing_log,omitempty"` // 存储ETL处理过程中的错误信息
+	Retries       int32                  `protobuf:"varint,10,opt,name=retries,proto3" json:"retries,omitempty"`                                // 重试次数
+	// --- 新增的请求上下文元数据 ---
+	RequestMethod  string `protobuf:"bytes,11,opt,name=request_method,json=requestMethod,proto3" json:"request_method,omitempty"` // "GET", "POST", etc.
+	RequestUrl     string `protobuf:"bytes,12,opt,name=request_url,json=requestUrl,proto3" json:"request_url,omitempty"`
+	RequestParams  string `protobuf:"bytes,13,opt,name=request_params,json=requestParams,proto3" json:"request_params,omitempty"`    // 存储 Query 或 Body 的 JSON 字符串
+	RequestHeaders string `protobuf:"bytes,14,opt,name=request_headers,json=requestHeaders,proto3" json:"request_headers,omitempty"` // 存储请求头的 JSON 字符串
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *SourceData) Reset() {
@@ -123,11 +130,53 @@ func (x *SourceData) GetDate() string {
 	return ""
 }
 
+func (x *SourceData) GetProcessingLog() string {
+	if x != nil {
+		return x.ProcessingLog
+	}
+	return ""
+}
+
+func (x *SourceData) GetRetries() int32 {
+	if x != nil {
+		return x.Retries
+	}
+	return 0
+}
+
+func (x *SourceData) GetRequestMethod() string {
+	if x != nil {
+		return x.RequestMethod
+	}
+	return ""
+}
+
+func (x *SourceData) GetRequestUrl() string {
+	if x != nil {
+		return x.RequestUrl
+	}
+	return ""
+}
+
+func (x *SourceData) GetRequestParams() string {
+	if x != nil {
+		return x.RequestParams
+	}
+	return ""
+}
+
+func (x *SourceData) GetRequestHeaders() string {
+	if x != nil {
+		return x.RequestHeaders
+	}
+	return ""
+}
+
 var File_v1_source_data_proto protoreflect.FileDescriptor
 
 const file_v1_source_data_proto_rawDesc = "" +
 	"\n" +
-	"\x14v1/source_data.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\x83\x02\n" +
+	"\x14v1/source_data.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xdc\x03\n" +
 	"\n" +
 	"SourceData\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12#\n" +
@@ -139,7 +188,15 @@ const file_v1_source_data_proto_rawDesc = "" +
 	"fetched_at\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampR\tfetchedAt\x12\x16\n" +
 	"\x06status\x18\x06 \x01(\x05R\x06status\x12\x1b\n" +
 	"\tentity_id\x18\a \x01(\tR\bentityId\x12\x12\n" +
-	"\x04date\x18\b \x01(\tR\x04dateB\x14Z\x12aresdata/api/v1;v1b\x06proto3"
+	"\x04date\x18\b \x01(\tR\x04date\x12%\n" +
+	"\x0eprocessing_log\x18\t \x01(\tR\rprocessingLog\x12\x18\n" +
+	"\aretries\x18\n" +
+	" \x01(\x05R\aretries\x12%\n" +
+	"\x0erequest_method\x18\v \x01(\tR\rrequestMethod\x12\x1f\n" +
+	"\vrequest_url\x18\f \x01(\tR\n" +
+	"requestUrl\x12%\n" +
+	"\x0erequest_params\x18\r \x01(\tR\rrequestParams\x12'\n" +
+	"\x0frequest_headers\x18\x0e \x01(\tR\x0erequestHeadersB\x14Z\x12aresdata/api/v1;v1b\x06proto3"
 
 var (
 	file_v1_source_data_proto_rawDescOnce sync.Once

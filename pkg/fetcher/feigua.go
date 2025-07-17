@@ -3,6 +3,7 @@ package fetcher
 import (
 	"aresdata/internal/conf"
 	"context"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -11,6 +12,14 @@ import (
 
 	"github.com/go-kratos/kratos/v2/log"
 )
+
+// RequestMetadata 存储每次API请求的元数据
+type RequestMetadata struct {
+	Method  string
+	URL     string
+	Params  string // JSON string of params
+	Headers string // JSON string of headers
+}
 
 // FeiguaFetcher 负责与飞瓜API进行交互
 type FeiguaFetcher struct {
@@ -21,17 +30,25 @@ type FeiguaFetcher struct {
 
 // NewFeiguaFetcher 创建一个新的 FeiguaFetcher
 func NewFeiguaFetcher(c *conf.Data, logger log.Logger) *FeiguaFetcher {
+	// 创建我们的节流 transport
+	throttledTransport := NewThrottledTransport(
+		c.Feigua.ThrottleMinWaitMs,
+		c.Feigua.ThrottleMaxWaitMs,
+		logger,
+	)
+
 	return &FeiguaFetcher{
 		log:  log.NewHelper(log.With(logger, "module", "fetcher/feigua")),
 		conf: c,
 		client: &http.Client{
-			Timeout: 30 * time.Second,
+			Timeout:   30 * time.Second,
+			Transport: throttledTransport, // 核心：将客户端的 Transport 设置为我们自己的节流 Transport
 		},
 	}
 }
 
 // FetchVideoRank 采集带货视频榜单
-func (f *FeiguaFetcher) FetchVideoRank(ctx context.Context, period, datecode string) (string, error) {
+func (f *FeiguaFetcher) FetchVideoRank(ctx context.Context, period, datecode string) (string, *RequestMetadata, error) {
 	// 基于Python脚本构建请求
 	apiEndpoint := f.conf.Feigua.BaseUrl + "/api/v3/awemerank/sellGoodsAwemeRank"
 
@@ -51,7 +68,7 @@ func (f *FeiguaFetcher) FetchVideoRank(ctx context.Context, period, datecode str
 
 	req, err := http.NewRequestWithContext(ctx, "GET", fullUrl, nil)
 	if err != nil {
-		return "", fmt.Errorf("failed to create request: %w", err)
+		return "", nil, fmt.Errorf("failed to create request: %w", err)
 	}
 
 	// 设置 Headers
@@ -61,20 +78,80 @@ func (f *FeiguaFetcher) FetchVideoRank(ctx context.Context, period, datecode str
 	req.Header.Set("Origin", f.conf.Feigua.BaseUrl)
 	req.Header.Set("Accept", "application/json, text/plain, */*")
 
+	// 捕获元数据
+	headersJson, _ := json.Marshal(req.Header)
+	meta := &RequestMetadata{
+		Method:  "GET",
+		URL:     apiEndpoint, // 只存基础URL，完整URL可由参数重构
+		Params:  params.Encode(),
+		Headers: string(headersJson),
+	}
+
 	resp, err := f.client.Do(req)
 	if err != nil {
-		return "", fmt.Errorf("failed to execute request: %w", err)
+		return "", meta, fmt.Errorf("failed to execute request: %w", err)
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("bad status code: %d", resp.StatusCode)
+		return "", meta, fmt.Errorf("bad status code: %d", resp.StatusCode)
 	}
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return "", fmt.Errorf("failed to read response body: %w", err)
+		return "", meta, fmt.Errorf("failed to read response body: %w", err)
 	}
 
-	return string(body), nil
+	return string(body), meta, nil
+}
+
+// FetchVideoTrend 采集单个视频的趋势数据
+func (f *FeiguaFetcher) FetchVideoTrend(ctx context.Context, awemeID string) (string, *RequestMetadata, error) {
+	apiEndpoint := f.conf.Feigua.BaseUrl + "/api/v3/aweme/detail/detail/trends"
+
+	params := url.Values{}
+	params.Set("awemeId", awemeID)
+	// 根据你的截图和URL，我们固定查询近7天的数据
+	params.Set("period", "7")
+	// dateCode 可以用当天的日期
+	params.Set("dateCode", time.Now().Format("20060102"))
+	params.Set("type", "1") // 这个 type=1 暂时固定
+	params.Set("_", fmt.Sprintf("%d", time.Now().UnixMilli()))
+
+	fullUrl := apiEndpoint + "?" + params.Encode()
+	f.log.WithContext(ctx).Infof("Requesting Trend URL: %s", fullUrl)
+
+	req, err := http.NewRequestWithContext(ctx, "GET", fullUrl, nil)
+	if err != nil {
+		return "", nil, fmt.Errorf("failed to create request for video trend: %w", err)
+	}
+
+	req.Header.Set("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36")
+	req.Header.Set("Cookie", f.conf.Feigua.Cookie)
+
+	// 捕获元数据
+	headersJson, _ := json.Marshal(req.Header)
+	meta := &RequestMetadata{
+		Method:  "GET",
+		URL:     apiEndpoint, // 只存基础URL，完整URL可由参数重构
+		Params:  params.Encode(),
+		Headers: string(headersJson),
+	}
+
+	resp, err := f.client.Do(req)
+	if err != nil {
+		return "", meta, fmt.Errorf("failed to execute request for video trend: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return "", meta, fmt.Errorf("bad status code for video trend: %d", resp.StatusCode)
+	}
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return "", meta, fmt.Errorf("failed to read response body for video trend: %w", err)
+	}
+
+	return string(body), meta, nil
 }

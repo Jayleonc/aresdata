@@ -11,7 +11,7 @@ import (
 )
 
 // ProviderSet is data providers.
-var ProviderSet = wire.NewSet(NewData, NewRedisClient, NewSourceDataRepo, NewVideoRankRepo)
+var ProviderSet = wire.NewSet(NewData, NewRedisClient, NewSourceDataRepo, NewVideoRankRepo, NewVideoRepo, NewVideoTrendStatRepo)
 
 // Data .
 type Data struct {
@@ -34,7 +34,7 @@ func NewData(c *conf.Data, redisClient redis.Cmdable, logger log.Logger) (*Data,
 		_ = redisClient.(*redis.Client).Close()
 	}
 
-	db.AutoMigrate(&SourceData{}, &VideoRank{})
+	db.AutoMigrate(&SourceData{}, &VideoRank{}, &Video{}, &VideoTrendStat{})
 
 	return &Data{
 		db:     db,

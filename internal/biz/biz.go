@@ -8,5 +8,6 @@ import (
 // ProviderSet is biz providers.
 var ProviderSet = wire.NewSet(
 	NewVideoRankUsecase,
+	NewFetcherUsecase,
 	fetcher.NewFeiguaFetcher,
 )

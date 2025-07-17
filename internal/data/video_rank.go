@@ -17,6 +17,8 @@ type VideoRankRepo interface {
 	GetByAwemeID(ctx context.Context, awemeID, rankType, rankDate string) (*v1.VideoRankDTO, error)
 	// 分页查询视频榜单
 	ListPage(ctx context.Context, page, size int, rankType, rankDate string) ([]*v1.VideoRankDTO, int64, error)
+	// GetDistinctAwemeIDsByDate 获取指定日期之后上过榜的、不重复的视频ID
+	GetDistinctAwemeIDsByDate(ctx context.Context, sinceDate string) ([]string, error)
 }
 
 // VideoRank is the GORM model for storing video ranking data.
@@ -71,6 +73,21 @@ type VideoRank struct {
 }
 
 // videoRankRepo implements VideoRankRepo using GORM.
+
+// GetDistinctAwemeIDsByDate 获取指定日期之后上过榜的、不重复的视频ID
+func (r *videoRankRepo) GetDistinctAwemeIDsByDate(ctx context.Context, sinceDate string) ([]string, error) {
+	var awemeIDs []string
+	err := r.db.WithContext(ctx).
+		Model(&VideoRank{}).
+		Distinct("aweme_id").
+		Where("rank_date >= ?", sinceDate).
+		Pluck("aweme_id", &awemeIDs).Error
+	if err != nil {
+		return nil, err
+	}
+	return awemeIDs, nil
+}
+
 type videoRankRepo struct {
 	*Data
 }

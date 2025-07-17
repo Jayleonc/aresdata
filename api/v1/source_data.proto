@@ -14,4 +14,13 @@ message SourceData {
 	int32 status = 6;
 	string entity_id = 7;
 	string date = 8;
+
+	string processing_log = 9; // 存储ETL处理过程中的错误信息
+	int32 retries = 10; // 重试次数
+
+	// --- 新增的请求上下文元数据 ---
+	string request_method = 11; // "GET", "POST", etc.
+	string request_url = 12;
+	string request_params = 13; // 存储 Query 或 Body 的 JSON 字符串
+	string request_headers = 14; // 存储请求头的 JSON 字符串
 }

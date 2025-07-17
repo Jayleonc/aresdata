@@ -17,6 +17,8 @@ data:
   feigua:
     baseUrl: "http://118.31.20.20:8080"
     cookie: "PHPSESSID=tdn5sqcnh1ub2413v9n6ffdpgt; body_collapsed=0"
+    throttle_min_wait_ms: 80000  # 80秒
+    throttle_max_wait_ms: 120000 # 120秒
 
 # 在文件末尾追加
 job:

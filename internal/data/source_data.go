@@ -19,15 +19,24 @@ type SourceDataRepo interface {
 
 // SourceData is the GORM model for storing raw data from various providers.
 // It is the Data Object (DO).
+// SourceData is the GORM model for storing raw data from various providers.
 type SourceData struct {
-	ID           int64     `gorm:"primaryKey"`
-	ProviderName string    `gorm:"type:varchar(255);not null;default:''"`
-	DataType     string    `gorm:"type:varchar(255);not null;default:''"`
-	RawContent   string    `gorm:"type:text;not null;default:''"`
-	EntityId     string    `gorm:"type:varchar(255);not null;default:''"`
-	Status       int32     `gorm:"not null;default:0"` // 0: unprocessed, 1: processed, -1: error
-	FetchedAt    time.Time `gorm:"autoCreateTime"`
-	Date         string    `gorm:"type:varchar(255);not null;default:''"`
+	ID            int64     `gorm:"primaryKey"`
+	ProviderName  string    `gorm:"type:varchar(255);not null;index"`
+	DataType      string    `gorm:"type:varchar(255);not null;index"`
+	EntityId      string    `gorm:"type:varchar(255);index"`  // 可选，关联的主要实体ID
+	Status        int32     `gorm:"not null;default:0;index"` // 0: unprocessed, 1: processed, -1: error
+	FetchedAt     time.Time `gorm:"autoCreateTime"`
+	Date          string    `gorm:"type:varchar(10);not null;index"`
+	RawContent    string    `gorm:"type:text"`
+	ProcessingLog string    `gorm:"type:text"`          // 存储ETL处理过程中的错误信息
+	Retries       int       `gorm:"not null;default:0"` // 重试次数
+
+	// --- 新增的请求上下文元数据 ---
+	RequestMethod  string `gorm:"type:varchar(10)"` // "GET", "POST", etc.
+	RequestUrl     string `gorm:"type:text"`
+	RequestParams  string `gorm:"type:text"` // 存储 Query 或 Body 的 JSON 字符串
+	RequestHeaders string `gorm:"type:text"` // 存储请求头的 JSON 字符串
 }
 
 func (SourceData) TableName() string {
@@ -54,27 +63,39 @@ func copySourceDataToDO(s *v1.SourceData) *SourceData {
 		fetchedAt = s.FetchedAt.AsTime()
 	}
 	return &SourceData{
-		ID:           s.Id,
-		ProviderName: s.ProviderName,
-		DataType:     s.DataType,
-		RawContent:   s.RawContent,
-		EntityId:     s.EntityId,
-		Status:       s.Status,
-		FetchedAt:    fetchedAt,
-		Date:         s.Date,
+		ID:             s.Id,
+		ProviderName:   s.ProviderName,
+		DataType:       s.DataType,
+		EntityId:       s.EntityId,
+		Status:         s.Status,
+		FetchedAt:      fetchedAt,
+		Date:           s.Date,
+		RawContent:     s.RawContent,
+		ProcessingLog:  s.ProcessingLog,
+		Retries:        int(s.Retries),
+		RequestMethod:  s.RequestMethod,
+		RequestUrl:     s.RequestUrl,
+		RequestParams:  s.RequestParams,
+		RequestHeaders: s.RequestHeaders,
 	}
 }
 
 func copySourceDataToDTO(s *SourceData) *v1.SourceData {
 	return &v1.SourceData{
-		Id:           s.ID,
-		ProviderName: s.ProviderName,
-		DataType:     s.DataType,
-		RawContent:   s.RawContent,
-		EntityId:     s.EntityId,
-		Status:       s.Status,
-		FetchedAt:    timestamppb.New(s.FetchedAt),
-		Date:         s.Date,
+		Id:             s.ID,
+		ProviderName:   s.ProviderName,
+		DataType:       s.DataType,
+		EntityId:       s.EntityId,
+		Status:         s.Status,
+		FetchedAt:      timestamppb.New(s.FetchedAt),
+		Date:           s.Date,
+		RawContent:     s.RawContent,
+		ProcessingLog:  s.ProcessingLog,
+		Retries:        int32(s.Retries),
+		RequestMethod:  s.RequestMethod,
+		RequestUrl:     s.RequestUrl,
+		RequestParams:  s.RequestParams,
+		RequestHeaders: s.RequestHeaders,
 	}
 }
 

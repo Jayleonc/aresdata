@@ -3,10 +3,22 @@
 
 openapi: 3.0.3
 info:
-    title: VideoRank API
-    description: VideoRank 提供榜单视频排名查询服务
+    title: ""
     version: 0.0.1
 paths:
+    /v1/hello:
+        get:
+            tags:
+                - Fetcher
+            description: Hello GET 方法
+            operationId: Fetcher_Hello
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/.HelloReply'
     /v1/video_rank:
         post:
             tags:
@@ -47,6 +59,12 @@ paths:
                                 $ref: '#/components/schemas/.ListVideoRankResponse'
 components:
     schemas:
+        .HelloReply:
+            type: object
+            properties:
+                message:
+                    type: string
+            description: Hello 方法的响应
         .ListVideoRankRequest:
             type: object
             properties:
@@ -232,4 +250,6 @@ components:
                     $ref: '#/components/schemas/.VideoRankDTO'
             description: VideoRank 查询响应
 tags:
+    - name: Fetcher
     - name: VideoRank
+      description: VideoRank 提供榜单视频排名查询服务
