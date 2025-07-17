@@ -25,7 +25,7 @@ func wireApp(job *conf.Job, confData *conf.Data, logger log.Logger) (ETLRunner, 
 	sourceDataRepo := data.NewSourceDataRepo(dataData, logger)
 	videoRankRepo := data.NewVideoRankRepo(dataData)
 	videoRankProcessor := etl.NewVideoRankProcessor(videoRankRepo, sourceDataRepo)
-	etlUsecase := etl.NewETLUsecase(sourceDataRepo, videoRankProcessor)
+	etlUsecase := etl.NewETL(sourceDataRepo, videoRankProcessor)
 	return etlUsecase, func() {
 		cleanup()
 	}, nil

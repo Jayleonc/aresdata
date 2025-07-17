@@ -10,7 +10,7 @@ import (
 )
 
 // NewGRPCServer new a gRPC server.
-func NewGRPCServer(c *conf.Server, fetcher *service.FetcherService, videoRank *service.VideoRankService, logger log.Logger) *grpc.Server {
+func NewGRPCServer(c *conf.Server, videoRank *service.VideoRankService, logger log.Logger) *grpc.Server {
 	var opts = []grpc.ServerOption{
 		grpc.Middleware(
 			recovery.Recovery(),
@@ -26,7 +26,6 @@ func NewGRPCServer(c *conf.Server, fetcher *service.FetcherService, videoRank *s
 		opts = append(opts, grpc.Timeout(c.Grpc.Timeout.AsDuration()))
 	}
 	srv := grpc.NewServer(opts...)
-	v1.RegisterFetcherServer(srv, fetcher)
 	v1.RegisterVideoRankServer(srv, videoRank)
 	return srv
 }

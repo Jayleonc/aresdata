@@ -17,6 +17,6 @@ func wireApp(*conf.Job, *conf.Data, log.Logger) (ETLRunner, func(), error) {
 	panic(wire.Build(
 		data.ProviderSet,
 		etl.ProviderSet,
-		wire.Bind(new(ETLRunner), new(*etl.ETLUsecase)),
+		wire.Bind(new(ETLRunner), new(*etl.ETL)),
 	))
 }

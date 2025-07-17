@@ -12,7 +12,6 @@ import (
 	"aresdata/internal/data"
 	"aresdata/internal/server"
 	"aresdata/internal/service"
-	"aresdata/pkg/fetcher"
 	"github.com/go-kratos/kratos/v2"
 	"github.com/go-kratos/kratos/v2/log"
 )
@@ -30,15 +29,11 @@ func wireApp(confServer *conf.Server, confData *conf.Data, logger log.Logger) (*
 	if err != nil {
 		return nil, nil, err
 	}
-	sourceDataRepo := data.NewSourceDataRepo(dataData, logger)
-	feiguaFetcher := fetcher.NewFeiguaFetcher(confData, logger)
-	fetcherUsecase := biz.NewFetcherUsecase(sourceDataRepo, feiguaFetcher, logger)
-	fetcherService := service.NewFetcherService(fetcherUsecase, logger)
 	videoRankRepo := data.NewVideoRankRepo(dataData)
 	videoRankUsecase := biz.NewVideoRankUsecase(videoRankRepo)
 	videoRankService := service.NewVideoRankService(videoRankUsecase)
-	grpcServer := server.NewGRPCServer(confServer, fetcherService, videoRankService, logger)
-	httpServer := server.NewHTTPServer(confServer, fetcherService, videoRankService, logger)
+	grpcServer := server.NewGRPCServer(confServer, videoRankService, logger)
+	httpServer := server.NewHTTPServer(confServer, videoRankService, logger)
 	app := newApp(logger, grpcServer, httpServer)
 	return app, func() {
 		cleanup()

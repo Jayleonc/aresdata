@@ -3,41 +3,22 @@
 
 openapi: 3.0.3
 info:
-    title: ""
+    title: VideoRank API
+    description: VideoRank 提供榜单视频排名查询服务
     version: 0.0.1
 paths:
-    /v1/hello:
-        get:
-            tags:
-                - Fetcher
-            description: Hello GET 方法
-            operationId: Fetcher_Hello
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/.HelloReply'
     /v1/video_rank:
-        get:
+        post:
             tags:
                 - VideoRank
             description: 查询单个视频榜单信息
             operationId: VideoRank_GetVideoRank
-            parameters:
-                - name: awemeId
-                  in: query
-                  schema:
-                    type: string
-                - name: rankType
-                  in: query
-                  schema:
-                    type: string
-                - name: rankDate
-                  in: query
-                  schema:
-                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/.VideoRankQueryRequest'
+                required: true
             responses:
                 "200":
                     description: OK
@@ -46,30 +27,17 @@ paths:
                             schema:
                                 $ref: '#/components/schemas/.VideoRankQueryResponse'
     /v1/video_rank/list:
-        get:
+        post:
             tags:
                 - VideoRank
             description: 分页查询视频榜单信息
             operationId: VideoRank_ListVideoRank
-            parameters:
-                - name: page.page
-                  in: query
-                  schema:
-                    type: string
-                - name: page.size
-                  in: query
-                  schema:
-                    type: string
-                - name: rankType
-                  in: query
-                  description: 排名类型，例如"day", "week", "month"
-                  schema:
-                    type: string
-                - name: rankDate
-                  in: query
-                  description: 排名日期，格式如"20250716"
-                  schema:
-                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/.ListVideoRankRequest'
+                required: true
             responses:
                 "200":
                     description: OK
@@ -79,12 +47,20 @@ paths:
                                 $ref: '#/components/schemas/.ListVideoRankResponse'
 components:
     schemas:
-        .HelloReply:
+        .ListVideoRankRequest:
             type: object
             properties:
-                message:
+                page:
+                    allOf:
+                        - $ref: '#/components/schemas/.PageRequest'
+                    description: 嵌入分页请求
+                rankType:
                     type: string
-            description: Hello 方法的响应
+                    description: 排名类型，例如"day", "week", "month"
+                rankDate:
+                    type: string
+                    description: 排名日期，格式如"20250716"
+            description: 分页查询请求
         .ListVideoRankResponse:
             type: object
             properties:
@@ -98,6 +74,14 @@ components:
                         $ref: '#/components/schemas/.VideoRankDTO'
                     description: 视频榜单信息列表
             description: 分页查询响应
+        .PageRequest:
+            type: object
+            properties:
+                page:
+                    type: string
+                size:
+                    type: string
+            description: 分页请求
         .PageResponse:
             type: object
             properties:
@@ -231,6 +215,16 @@ components:
                         元数据
                          原始元数据JSON
             description: 榜单视频榜结构
+        .VideoRankQueryRequest:
+            type: object
+            properties:
+                awemeId:
+                    type: string
+                rankType:
+                    type: string
+                rankDate:
+                    type: string
+            description: VideoRank 查询请求参数
         .VideoRankQueryResponse:
             type: object
             properties:
@@ -238,6 +232,4 @@ components:
                     $ref: '#/components/schemas/.VideoRankDTO'
             description: VideoRank 查询响应
 tags:
-    - name: Fetcher
     - name: VideoRank
-      description: VideoRank 提供榜单视频排名查询服务

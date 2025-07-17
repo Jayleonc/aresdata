@@ -670,10 +670,10 @@ const file_v1_video_rank_proto_rawDesc = "" +
 	"\x0ftotal_sales_str\x18  \x01(\tR\rtotalSalesStr\x12+\n" +
 	"\x12like_count_inc_str\x18! \x01(\tR\x0flikeCountIncStr\x12+\n" +
 	"\x12play_count_inc_str\x18\" \x01(\tR\x0fplayCountIncStr\x12\x19\n" +
-	"\braw_json\x18# \x01(\tR\arawJson2\xc1\x01\n" +
-	"\tVideoRank\x12W\n" +
-	"\fGetVideoRank\x12\x16.VideoRankQueryRequest\x1a\x17.VideoRankQueryResponse\"\x16\x82\xd3\xe4\x93\x02\x10\x12\x0e/v1/video_rank\x12[\n" +
-	"\rListVideoRank\x12\x15.ListVideoRankRequest\x1a\x16.ListVideoRankResponse\"\x1b\x82\xd3\xe4\x93\x02\x15\x12\x13/v1/video_rank/listB\x14Z\x12aresdata/api/v1;v1b\x06proto3"
+	"\braw_json\x18# \x01(\tR\arawJson2\xc7\x01\n" +
+	"\tVideoRank\x12Z\n" +
+	"\fGetVideoRank\x12\x16.VideoRankQueryRequest\x1a\x17.VideoRankQueryResponse\"\x19\x82\xd3\xe4\x93\x02\x13:\x01*\"\x0e/v1/video_rank\x12^\n" +
+	"\rListVideoRank\x12\x15.ListVideoRankRequest\x1a\x16.ListVideoRankResponse\"\x1e\x82\xd3\xe4\x93\x02\x18:\x01*\"\x13/v1/video_rank/listB\x14Z\x12aresdata/api/v1;v1b\x06proto3"
 
 var (
 	file_v1_video_rank_proto_rawDescOnce sync.Once

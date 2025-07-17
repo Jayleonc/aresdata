@@ -8,7 +8,7 @@ import (
 )
 
 var ProviderSet = wire.NewSet(
-	NewETLUsecase,
+	NewETL,
 	NewVideoRankProcessor,
 )
 
@@ -17,31 +17,31 @@ type Processor interface {
 	Process(ctx context.Context, rawData *v1.SourceData) error
 }
 
-// ETLUsecase orchestrates ETL processors.
-type ETLUsecase struct {
+// ETL orchestrates ETL processors.
+type ETL struct {
 	sourceDataRepo data.SourceDataRepo
 	processors     map[string]Processor
 }
 
-func NewETLUsecase(sdRepo data.SourceDataRepo, vr *VideoRankProcessor) *ETLUsecase {
+func NewETL(sdRepo data.SourceDataRepo, vr *VideoRankProcessor) *ETL {
 	processors := map[string]Processor{
 		"video_rank_day": vr,
 		// 扩展
 	}
 
-	return &ETLUsecase{
+	return &ETL{
 		sourceDataRepo: sdRepo,
 		processors:     processors,
 	}
 }
 
 // Run processes all unprocessed source data.
-func (u *ETLUsecase) Run(ctx context.Context, dataType string) error {
+func (u *ETL) Run(ctx context.Context, dataType string) error {
 	return u.RunWithType(ctx, dataType)
 }
 
 // RunWithType processes unprocessed source data, filtered by dataType if provided.
-func (u *ETLUsecase) RunWithType(ctx context.Context, dataType string) error {
+func (u *ETL) RunWithType(ctx context.Context, dataType string) error {
 	list, err := u.sourceDataRepo.FindUnprocessed(ctx)
 	if err != nil {
 		return err

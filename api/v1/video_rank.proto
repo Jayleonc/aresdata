@@ -4,20 +4,23 @@ option go_package = "aresdata/api/v1;v1";
 
 import "google/protobuf/timestamp.proto";
 import "google/api/annotations.proto";
-import "v1/page.proto";
+import "api/v1/page.proto";
+
 
 // VideoRank 提供榜单视频排名查询服务
 service VideoRank {
 	// 查询单个视频榜单信息
 	rpc GetVideoRank(VideoRankQueryRequest) returns (VideoRankQueryResponse){
 		option (google.api.http) = {
-			get: "/v1/video_rank"
+			post: "/v1/video_rank"
+			body: "*"
 		};
 	};
 	// 分页查询视频榜单信息
 	rpc ListVideoRank(ListVideoRankRequest) returns (ListVideoRankResponse) {
 		option (google.api.http) = {
-			get: "/v1/video_rank/list"
+			post: "/v1/video_rank/list"
+			body: "*"
 		};
 	}
 }

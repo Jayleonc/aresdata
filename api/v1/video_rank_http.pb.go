@@ -31,13 +31,16 @@ type VideoRankHTTPServer interface {
 
 func RegisterVideoRankHTTPServer(s *http.Server, srv VideoRankHTTPServer) {
 	r := s.Route("/")
-	r.GET("/v1/video_rank", _VideoRank_GetVideoRank0_HTTP_Handler(srv))
-	r.GET("/v1/video_rank/list", _VideoRank_ListVideoRank0_HTTP_Handler(srv))
+	r.POST("/v1/video_rank", _VideoRank_GetVideoRank0_HTTP_Handler(srv))
+	r.POST("/v1/video_rank/list", _VideoRank_ListVideoRank0_HTTP_Handler(srv))
 }
 
 func _VideoRank_GetVideoRank0_HTTP_Handler(srv VideoRankHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in VideoRankQueryRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
 		if err := ctx.BindQuery(&in); err != nil {
 			return err
 		}
@@ -57,6 +60,9 @@ func _VideoRank_GetVideoRank0_HTTP_Handler(srv VideoRankHTTPServer) func(ctx htt
 func _VideoRank_ListVideoRank0_HTTP_Handler(srv VideoRankHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in ListVideoRankRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
 		if err := ctx.BindQuery(&in); err != nil {
 			return err
 		}
@@ -89,10 +95,10 @@ func NewVideoRankHTTPClient(client *http.Client) VideoRankHTTPClient {
 func (c *VideoRankHTTPClientImpl) GetVideoRank(ctx context.Context, in *VideoRankQueryRequest, opts ...http.CallOption) (*VideoRankQueryResponse, error) {
 	var out VideoRankQueryResponse
 	pattern := "/v1/video_rank"
-	path := binding.EncodeURL(pattern, in, true)
+	path := binding.EncodeURL(pattern, in, false)
 	opts = append(opts, http.Operation(OperationVideoRankGetVideoRank))
 	opts = append(opts, http.PathTemplate(pattern))
-	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -102,10 +108,10 @@ func (c *VideoRankHTTPClientImpl) GetVideoRank(ctx context.Context, in *VideoRan
 func (c *VideoRankHTTPClientImpl) ListVideoRank(ctx context.Context, in *ListVideoRankRequest, opts ...http.CallOption) (*ListVideoRankResponse, error) {
 	var out ListVideoRankResponse
 	pattern := "/v1/video_rank/list"
-	path := binding.EncodeURL(pattern, in, true)
+	path := binding.EncodeURL(pattern, in, false)
 	opts = append(opts, http.Operation(OperationVideoRankListVideoRank))
 	opts = append(opts, http.PathTemplate(pattern))
-	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {
 		return nil, err
 	}
