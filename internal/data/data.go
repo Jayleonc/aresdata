@@ -2,6 +2,7 @@ package data
 
 import (
 	"aresdata/internal/conf"
+	"time"
 
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/google/wire"
@@ -11,7 +12,7 @@ import (
 )
 
 // ProviderSet is data providers.
-var ProviderSet = wire.NewSet(NewData, NewRedisClient, NewSourceDataRepo, NewVideoRankRepo, NewVideoRepo, NewVideoTrendStatRepo)
+var ProviderSet = wire.NewSet(NewData, NewRedisClient, NewSourceDataRepo, NewVideoRankRepo, NewVideoRepo, NewVideoTrendStatRepo, NewProductRepo, NewBloggerRepo)
 
 // Data .
 type Data struct {
@@ -22,7 +23,13 @@ type Data struct {
 
 // NewData .
 func NewData(c *conf.Data, redisClient redis.Cmdable, logger log.Logger) (*Data, func(), error) {
-	db, err := gorm.Open(postgres.Open(c.Database.Source), &gorm.Config{})
+	loc, _ := time.LoadLocation("Asia/Shanghai")
+	gormConfig := &gorm.Config{
+		NowFunc: func() time.Time {
+			return time.Now().In(loc)
+		},
+	}
+	db, err := gorm.Open(postgres.Open(c.Database.Source), gormConfig)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -34,7 +41,7 @@ func NewData(c *conf.Data, redisClient redis.Cmdable, logger log.Logger) (*Data,
 		_ = redisClient.(*redis.Client).Close()
 	}
 
-	db.AutoMigrate(&SourceData{}, &VideoRank{}, &Video{}, &VideoTrendStat{})
+	db.AutoMigrate(&SourceData{}, &VideoRank{}, &Video{}, &VideoTrendStat{}, &Product{}, &Blogger{})
 
 	return &Data{
 		db:     db,

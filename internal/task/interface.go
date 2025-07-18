@@ -6,8 +6,8 @@ import (
 
 const (
 	FetchVideoRank      = "fetch:video_rank"
-	FetchVideoTrend     = "fetch:video_trend"
 	ProcessVideoRank    = "process:video_rank"
+	FetchVideoTrend     = "fetch:video_trend"
 	ProcessVideoTrend   = "process:video_trend"
 	FetchVideoSummary   = "fetch:video_summary"
 	ProcessVideoSummary = "process:video_summary"

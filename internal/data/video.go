@@ -18,15 +18,20 @@ type Video struct {
 	AwemePubTime  time.Time
 	BloggerId     int64 `gorm:"index"`
 
-	// --- 新增：总览数据 (来自趋势接口或总量接口的最新一条) ---
-	TotalLikes         int64  `gorm:"type:integer"`
-	TotalComments      int64  `gorm:"type:integer"`
-	TotalShares        int64  `gorm:"type:integer"`
-	TotalCollects      int64  `gorm:"type:integer"`
-	TotalSalesGmv      int64  `gorm:"type:integer;comment:累计销售额，单位分"`
-	TotalSalesVolume   int64  `gorm:"type:integer;comment:累计销量"`
+	// --- 新增：总览数据 (来自总量接口的原始字符串) ---
+	PlayCountStr       string `gorm:"size:255"`
+	LikeCountStr       string `gorm:"size:255"`
+	CommentCountStr    string `gorm:"size:255"`
+	ShareCountStr      string `gorm:"size:255"`
+	CollectCountStr    string `gorm:"size:255"`
 	InteractionRateStr string `gorm:"size:255"`
-	GpmStr             string `gorm:"size:255"`
+	ScoreStr           string `gorm:"size:255;comment:视频分数"`
+	LikeCommentRateStr string `gorm:"size:255"`
+	SalesGmvStr        string `gorm:"size:255"`
+	SalesCountStr      string `gorm:"size:255"`
+	GoodsCountStr      string `gorm:"size:255"`
+	GpmStr             string `gorm:"size:255;column:gpm_str"` // 明确指定列名
+	AwemeType          int32  `gorm:"type:integer"`
 
 	// --- 详情信息 (来自下钻采集) ---
 	DyTagsJSON          string `gorm:"type:text"`
@@ -35,6 +40,8 @@ type Video struct {
 	CommentSegmentsJSON string `gorm:"type:text"`
 	InteractionJSON     string `gorm:"type:text"`
 	AudienceProfileJSON string `gorm:"type:text"`
+
+	SummaryUpdatedAt *time.Time `gorm:"index;comment:总览数据更新时间"`
 }
 
 func (Video) TableName() string {
@@ -42,8 +49,8 @@ func (Video) TableName() string {
 }
 
 type VideoRepo interface {
-	Upsert(ctx context.Context, video *Video) error
-	// FindVideosNeedingSummaryUpdate 查找需要更新总览数据的视频
+	UpsertFromRank(ctx context.Context, video *Video) error    // 新方法
+	UpdateFromSummary(ctx context.Context, video *Video) error // 新方法
 	FindVideosNeedingSummaryUpdate(ctx context.Context, limit int) ([]*VideoForSummary, error)
 }
 
@@ -55,31 +62,18 @@ func NewVideoRepo(data *Data) VideoRepo {
 	return &videoRepo{Data: data}
 }
 
-// Upsert a video record. If the record with the same AwemeId exists, it will be updated.
-// Otherwise, a new record will be created.
-func (r *videoRepo) Upsert(ctx context.Context, video *Video) error {
+// UpsertFromRank 安全地创建或更新来自榜单数据的视频基础信息
+func (r *videoRepo) UpsertFromRank(ctx context.Context, video *Video) error {
 	return r.db.WithContext(ctx).Clauses(clause.OnConflict{
 		Columns: []clause.Column{{Name: "aweme_id"}},
 		DoUpdates: clause.AssignmentColumns([]string{
-			"updated_at",
-			"aweme_desc",
-			"aweme_cover_url",
-			"aweme_pub_time",
-			"blogger_id",
-			"total_likes",
-			"total_comments",
-			"total_shares",
-			"total_collects",
-			"total_sales_gmv",
-			"total_sales_volume",
-			"interaction_rate_str",
-			"gpm_str",
-			"dy_tags_json",
-			"hot_search_words_json",
-			"topics_json",
-			"comment_segments_json",
-			"interaction_json",
-			"audience_profile_json",
+			"updated_at", "aweme_desc", "aweme_cover_url", "aweme_pub_time", "blogger_id",
 		}),
 	}).Create(video).Error
+}
+
+// UpdateFromSummary 安全地只更新 Video 模型中与总览数据相关的字段
+func (r *videoRepo) UpdateFromSummary(ctx context.Context, video *Video) error {
+	// 使用 Updates 方法，GORM 将只更新 video 对象中的非零值字段
+	return r.db.WithContext(ctx).Model(&Video{AwemeId: video.AwemeId}).Updates(video).Error
 }

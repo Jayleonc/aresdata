@@ -14,7 +14,9 @@ type SourceDataRepo interface {
 	Save(context.Context, *v1.SourceData) (*v1.SourceData, error)
 	UpdateStatus(ctx context.Context, id int64, status int32) error
 
-	FindUnprocessed(ctx context.Context) ([]*v1.SourceData, error)
+	FindUnprocessed(ctx context.Context, dataType string) ([]*v1.SourceData, error)
+	// UpdateStatusAndLog 原子性地更新状态和处理日志
+	UpdateStatusAndLog(ctx context.Context, id int64, status int32, log string) error
 }
 
 // SourceData is the GORM model for storing raw data from various providers.
@@ -24,7 +26,7 @@ type SourceData struct {
 	ID            int64     `gorm:"primaryKey"`
 	ProviderName  string    `gorm:"type:varchar(255);not null;index"`
 	DataType      string    `gorm:"type:varchar(255);not null;index"`
-	EntityId      string    `gorm:"type:varchar(255);index"`  // 可选，关联的主要实体ID
+	EntityId      string    `gorm:"type:varchar(255);index"`  // 可选，关联的主要实体ID，不同的数据类型可能有不同的ID
 	Status        int32     `gorm:"not null;default:0;index"` // 0: unprocessed, 1: processed, -1: error
 	FetchedAt     time.Time `gorm:"autoCreateTime"`
 	Date          string    `gorm:"type:varchar(10);not null;index"`
@@ -112,10 +114,18 @@ func (r *sourceDataRepo) UpdateStatus(ctx context.Context, id int64, status int3
 	return r.data.db.WithContext(ctx).Model(&SourceData{}).Where("id = ?", id).Update("status", status).Error
 }
 
+// UpdateStatusAndLog 更新原始数据的处理状态和日志
+func (r *sourceDataRepo) UpdateStatusAndLog(ctx context.Context, id int64, status int32, log string) error {
+	return r.data.db.WithContext(ctx).Model(&SourceData{}).Where("id = ?", id).Updates(map[string]interface{}{
+		"status":         status,
+		"processing_log": log,
+	}).Error
+}
+
 // FindUnprocessed 查找所有未处理的数据
-func (r *sourceDataRepo) FindUnprocessed(ctx context.Context) ([]*v1.SourceData, error) {
+func (r *sourceDataRepo) FindUnprocessed(ctx context.Context, dataType string) ([]*v1.SourceData, error) {
 	var models []*SourceData
-	if err := r.data.db.WithContext(ctx).Where("status = ?", 0).Find(&models).Error; err != nil {
+	if err := r.data.db.WithContext(ctx).Where("status = ? AND data_type = ?", 0, dataType).Find(&models).Error; err != nil {
 		return nil, err
 	}
 	var result []*v1.SourceData

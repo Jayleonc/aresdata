@@ -31,22 +31,22 @@ func (t *FetchVideoTrendTask) Run(ctx context.Context, args ...string) error {
 	// 1. 通过业务层获取需要追踪的 aweme_id 列表 (查询逻辑已内聚到 biz 和 data 层)
 	awemeIDs, err := t.rankUC.GetTrackedAwemeIDs(ctx, 7) // 查询近7天
 	if err != nil {
-		t.log.WithContext(ctx).Errorf("failed to get tracked aweme ids: %v", err)
+		t.log.WithContext(ctx).Errorf("获取需要追踪的 aweme_id 列表失败: %v", err)
 		return err
 	}
-	t.log.WithContext(ctx).Infof("Start to fetch trends for %d videos", len(awemeIDs))
+	t.log.WithContext(ctx).Infof("开始采集 %d 个视频的趋势数据", len(awemeIDs))
 
 	// 2. 依次采集并存储趋势
 	for _, id := range awemeIDs {
 		_, err := t.fetcherUC.FetchAndStoreVideoTrend(ctx, id)
 		if err != nil {
-			t.log.WithContext(ctx).Errorf("failed to fetch and store trend for awemeId %s: %v", id, err)
+			t.log.WithContext(ctx).Errorf("采集并入库 awemeId %s 趋势数据失败: %v", id, err)
 		} else {
-			t.log.WithContext(ctx).Infof("Successfully dispatched trend fetch for awemeId: %s", id)
+			t.log.WithContext(ctx).Infof("已成功下发采集趋势任务，awemeId: %s", id)
 		}
 		time.Sleep(1 * time.Second)
 	}
 
-	t.log.WithContext(ctx).Info("All trend fetching tasks have been dispatched.")
+	t.log.WithContext(ctx).Info("全部视频趋势采集任务已下发完毕。")
 	return nil
 }

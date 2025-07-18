@@ -1,6 +1,6 @@
-syntax = "proto3";
 
-package v1;
+
+option go_package = "aresdata/api/v1;v1";
 
 // 视频总览数据 DTO
 message VideoSummaryDTO {

@@ -29,28 +29,28 @@ func (t *FetchVideoSummaryTask) Name() string {
 func (t *FetchVideoSummaryTask) Run(ctx context.Context, args ...string) error {
 	videos, err := t.videoRepo.FindVideosNeedingSummaryUpdate(ctx, 100)
 	if err != nil {
-		t.log.WithContext(ctx).Errorf("failed to get videos needing summary update: %v", err)
+		t.log.WithContext(ctx).Errorf("获取待更新视频列表失败: %v", err)
 		return err
 	}
 
 	if len(videos) == 0 {
-		t.log.WithContext(ctx).Info("No videos need summary update.")
+		t.log.WithContext(ctx).Info("没有需要更新总览的视频。")
 		return nil
 	}
 
-	t.log.WithContext(ctx).Infof("Start to fetch summary for %d videos", len(videos))
+	t.log.WithContext(ctx).Infof("开始采集 %d 个视频的总览数据", len(videos))
 
 	for _, v := range videos {
 		dateCode := v.AwemePubTime.Format("20060102")
 		_, err := t.fetcherUC.FetchAndStoreVideoSummary(ctx, v.AwemeId, dateCode)
 		if err != nil {
-			t.log.WithContext(ctx).Errorf("failed to fetch and store summary for awemeId %s: %v", v.AwemeId, err)
+			t.log.WithContext(ctx).Errorf("采集并入库 awemeId %s 总览数据失败: %v", v.AwemeId, err)
 		} else {
-			t.log.WithContext(ctx).Infof("Successfully dispatched summary fetch for awemeId: %s", v.AwemeId)
+			t.log.WithContext(ctx).Infof("已成功下发采集任务，awemeId: %s", v.AwemeId)
 		}
 		time.Sleep(1 * time.Second)
 	}
 
-	t.log.WithContext(ctx).Info("All video summary fetching tasks have been dispatched.")
+	t.log.WithContext(ctx).Info("全部视频总览采集任务已下发完毕。")
 	return nil
 }

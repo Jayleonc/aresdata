@@ -11,7 +11,8 @@ import (
 var ProviderSet = wire.NewSet(
 	NewETLUsecase,
 	NewVideoRankProcessor,
-	NewVideoTrendProcessor, // <-- 新增
+	NewVideoTrendProcessor,
+	NewVideoSummaryProcessor,
 )
 
 // Processor defines a generic ETL processor.
@@ -26,10 +27,11 @@ type ETLUsecase struct {
 }
 
 // 修改构造函数签名，注入新的 processor
-func NewETLUsecase(sdRepo data.SourceDataRepo, vr *VideoRankProcessor, vt *VideoTrendProcessor) *ETLUsecase {
+func NewETLUsecase(sdRepo data.SourceDataRepo, vr *VideoRankProcessor, vt *VideoTrendProcessor, vs *VideoSummaryProcessor) *ETLUsecase {
 	processors := map[string]Processor{
 		"video_rank_day":    vr,
 		"video_trend_daily": vt,
+		"video_summary":     vs,
 		// 扩展...
 	}
 
@@ -46,14 +48,14 @@ func (u *ETLUsecase) Run(ctx context.Context, dataType string) error {
 
 // RunWithType processes unprocessed source data, filtered by dataType if provided.
 func (u *ETLUsecase) RunWithType(ctx context.Context, dataType string) error {
-	list, err := u.sourceDataRepo.FindUnprocessed(ctx)
+	list, err := u.sourceDataRepo.FindUnprocessed(ctx, dataType)
 	if err != nil {
 		return err
 	}
 	for _, raw := range list {
-		if dataType != "" && raw.DataType != dataType {
-			continue // 跳过非指定类型
-		}
+		//if dataType != "" && raw.DataType != dataType {
+		//	continue // 跳过非指定类型
+		//}
 		processor, ok := u.processors[raw.DataType]
 		if !ok {
 			continue // 未知类型跳过

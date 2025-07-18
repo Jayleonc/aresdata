@@ -6,6 +6,8 @@ import (
 	"aresdata/pkg/crypto"
 	"context"
 	"encoding/json"
+	"fmt"
+	"github.com/go-kratos/kratos/v2/log"
 	"strings"
 	"time"
 )
@@ -53,57 +55,77 @@ type FeiguaVideoRankItem struct {
 	PlayCountInc string           `json:"playCountInc"`
 }
 
+// FeiguaVideoRankResponse 统一了API响应结构，嵌套通用响应字段
+// Status, Msg, Code 字段通过 FeiguaBaseResponse 提供
+// Encrypt, Rnd, Data 为加密数据相关字段
+type FeiguaVideoRankResponse struct {
+	FeiguaBaseResponse
+	Encrypt bool   `json:"Encrypt"`
+	Rnd     string `json:"Rnd"`
+	Data    string `json:"Data"`
+}
+
 // VideoRankProcessor implements Processor for video rank data.
 type VideoRankProcessor struct {
 	videoRankRepo  data.VideoRankRepo
 	sourceDataRepo data.SourceDataRepo
-	videoRepo      data.VideoRepo // 新增
+	videoRepo      data.VideoRepo
+	productRepo    data.ProductRepo // 新增
+	bloggerRepo    data.BloggerRepo // 新增
+	log            *log.Helper
 }
 
-func NewVideoRankProcessor(vrRepo data.VideoRankRepo, sdRepo data.SourceDataRepo, vRepo data.VideoRepo) *VideoRankProcessor {
+func NewVideoRankProcessor(vrRepo data.VideoRankRepo, sdRepo data.SourceDataRepo, vRepo data.VideoRepo, pRepo data.ProductRepo, bRepo data.BloggerRepo, logger log.Logger) *VideoRankProcessor {
 	return &VideoRankProcessor{
 		videoRankRepo:  vrRepo,
 		sourceDataRepo: sdRepo,
-		videoRepo:      vRepo, // 新增
+		videoRepo:      vRepo,
+		productRepo:    pRepo,
+		bloggerRepo:    bRepo,
+		log:            log.NewHelper(log.With(logger, "module", "etl/video-rank")),
 	}
 }
 
 func (p *VideoRankProcessor) Process(ctx context.Context, rawData *v1.SourceData) error {
-	// Step 1: Parse raw JSON to get Data and Rnd
-	var payload struct {
-		Data    string `json:"Data"`
-		Encrypt bool   `json:"Encrypt"`
-		Rnd     string `json:"Rnd"`
-	}
-	if err := json.Unmarshal([]byte(rawData.RawContent), &payload); err != nil {
+	// Step 1: 一次性解析包含状态和数据的完整响应
+	var resp FeiguaVideoRankResponse
+	if err := json.Unmarshal([]byte(rawData.RawContent), &resp); err != nil {
 		return &ProcessError{Msg: "failed to parse raw_content payload", SourceID: rawData.Id, Err: err}
 	}
 
+	// Step 2: 预检API业务状态
+	if !resp.Status {
+		logMsg := fmt.Sprintf("API returned error status: Code=%d, Msg=%s", resp.Code, resp.Msg)
+		return p.sourceDataRepo.UpdateStatusAndLog(ctx, rawData.Id, -1, logMsg)
+	}
+
+	// Step 3: 解密数据
 	var decrypted string
-	if payload.Encrypt {
-		if payload.Data == "" || len(payload.Rnd) < 8 {
-			return &ProcessError{Msg: "missing data or invalid rnd field", SourceID: rawData.Id}
+	if resp.Encrypt {
+		if resp.Data == "" || len(resp.Rnd) < 8 {
+			return &ProcessError{Msg: "missing encrypted data or invalid rnd field", SourceID: rawData.Id}
 		}
 		var err error
-		decrypted, err = crypto.FeiguaDecrypt(payload.Data, payload.Rnd)
+		decrypted, err = crypto.FeiguaDecrypt(resp.Data, resp.Rnd)
 		if err != nil {
 			return &ProcessError{Msg: "failed to decrypt data", SourceID: rawData.Id, Err: err}
 		}
 	} else {
-		// 如果未加密，Data字段本身就是JSON字符串
-		decrypted = payload.Data
+		decrypted = resp.Data
 	}
 
-	// Step 3: Unmarshal decrypted JSON to a strongly-typed struct
+	// Step 4: 解析解密后的具体业务数据
 	var listPayload struct {
 		List []FeiguaVideoRankItem `json:"List"`
 	}
 	if err := json.Unmarshal([]byte(decrypted), &listPayload); err != nil {
+		// 注意：这里的错误可能是因为解密后的内容不是预期的JSON，例如内容为空
+		// 我们需要更健壮地处理这种情况
+		p.sourceDataRepo.UpdateStatusAndLog(ctx, rawData.Id, -1, "failed to unmarshal decrypted list payload: "+err.Error())
 		return &ProcessError{Msg: "failed to unmarshal decrypted list", SourceID: rawData.Id, Err: err}
 	}
 
 	if len(listPayload.List) == 0 {
-		// 即使列表为空，也标记为已处理，防止重复执行
 		return p.sourceDataRepo.UpdateStatus(ctx, rawData.Id, 1)
 	}
 
@@ -166,7 +188,7 @@ func (p *VideoRankProcessor) Process(ctx context.Context, rawData *v1.SourceData
 		ranksToCreate = append(ranksToCreate, vr)
 
 		// --- 维度表更新 ---
-		// 2a. 更新/插入 Video 维度表
+		// 1. 更新/插入 Video 维度表 (修复：使用为Rank定制的Upsert)
 		videoDim := &data.Video{
 			AwemeId:       item.AwemeDto.AwemeId,
 			AwemeDesc:     item.AwemeDto.AwemeDesc,
@@ -174,15 +196,40 @@ func (p *VideoRankProcessor) Process(ctx context.Context, rawData *v1.SourceData
 			AwemePubTime:  pubTime,
 			BloggerId:     toInt64(item.BloggerDto.BloggerId),
 		}
-		if err := p.videoRepo.Upsert(ctx, videoDim); err != nil {
-			// 记录错误，但通常不应该中断整个ETL流程
-			if pLogger, ok := any(p).(interface {
-				logf(format string, args ...any)
-			}); ok {
-				pLogger.logf("failed to upsert video dimension for awemeId %s: %v", videoDim.AwemeId, err)
-			}
+		if err := p.videoRepo.UpsertFromRank(ctx, videoDim); err != nil {
+			p.log.Errorf("failed to upsert video dimension for awemeId %s: %v", videoDim.AwemeId, err)
 		}
-		// TODO: 2b. 将来在这里添加对 Product 和 Blogger 维度表的 Upsert
+
+		// 2. 更新/插入 Product 维度表
+		productDim := &data.Product{
+			GoodsId:         item.GoodsDto.Gid,
+			GoodsTitle:      item.GoodsDto.Title,
+			GoodsCoverUrl:   item.GoodsDto.CoverUrl,
+			GoodsPriceRange: item.GoodsDto.PriceRange,
+			GoodsPrice:      toFloat64(item.GoodsDto.Price),
+			CosRatio:        item.GoodsDto.CosRatio,
+			CommissionPrice: item.GoodsDto.CommissionPrice,
+			ShopName:        item.GoodsDto.ShopName,
+			BrandName:       item.GoodsDto.DouyinBrandName,
+			CategoryNames:   item.GoodsDto.CateNames,
+		}
+		if err := p.productRepo.Upsert(ctx, productDim); err != nil {
+			p.log.Errorf("failed to upsert product dimension for goodsId %s: %v", productDim.GoodsId, err)
+		}
+
+		// 3. 更新/插入 Blogger 维度表
+		bloggerDim := &data.Blogger{
+			BloggerId:      toInt64(item.BloggerDto.BloggerId),
+			BloggerUid:     item.BloggerDto.BloggerUid,
+			BloggerName:    item.BloggerDto.BloggerName,
+			BloggerAvatar:  item.BloggerDto.BloggerAvatar,
+			BloggerFansNum: toInt64(item.BloggerDto.FansNum),
+			BloggerTag:     item.BloggerDto.Tag,
+		}
+		if err := p.bloggerRepo.Upsert(ctx, bloggerDim); err != nil {
+			p.log.Errorf("failed to upsert blogger dimension for bloggerId %d: %v", bloggerDim.BloggerId, err)
+		}
+
 	}
 
 	// Step 5: Batch insert

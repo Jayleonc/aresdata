@@ -1,7 +1,7 @@
 package biz
 
 import (
-	"aresdata/pkg/fetcher"
+	"aresdata/internal/fetcher"
 	"github.com/google/wire"
 )
 

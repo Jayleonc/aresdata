@@ -3,6 +3,7 @@ package etl
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"strconv"
 	"time"
 
@@ -28,7 +29,12 @@ type FeiguaVideoTrendItem struct {
 }
 
 // FeiguaVideoTrendResponse 对应完整的趋势接口响应
+// FeiguaVideoTrendResponse 对应完整的趋势接口响应，包含状态
+// 通过嵌套 FeiguaBaseResponse 提供 Status/Msg/Code 字段
+// Data 字段为业务数据
+// Go 的 json 库会自动处理嵌套
 type FeiguaVideoTrendResponse struct {
+	FeiguaBaseResponse
 	Data []FeiguaVideoTrendItem `json:"Data"`
 }
 
@@ -51,32 +57,21 @@ func NewVideoTrendProcessor(sdRepo data.SourceDataRepo, vRepo data.VideoRepo, vt
 
 // Process 解析视频趋势原始数据，并存入 video_daily_stats 表
 func (p *VideoTrendProcessor) Process(ctx context.Context, rawData *v1.SourceData) error {
+	// 一次性解析包含状态和数据的完整响应
 	var resp FeiguaVideoTrendResponse
 	if err := json.Unmarshal([]byte(rawData.RawContent), &resp); err != nil {
 		p.log.Errorf("failed to unmarshal video trend response for sourceID %d: %v", rawData.Id, err)
 		return &ProcessError{Msg: "unmarshal video trend response failed", SourceID: rawData.Id, Err: err}
 	}
 
+	if !resp.Status {
+		logMsg := fmt.Sprintf("API returned error status: Code=%d, Msg=%s", resp.Code, resp.Msg)
+		return p.sourceDataRepo.UpdateStatusAndLog(ctx, rawData.Id, -1, logMsg)
+	}
+
 	if len(resp.Data) == 0 {
 		p.log.Warnf("video trend data is empty for sourceID %d", rawData.Id)
 		return p.sourceDataRepo.UpdateStatus(ctx, rawData.Id, 1)
-	}
-
-	// 1. 更新 Video 维度表（只更新总览字段）
-	latestTrend := resp.Data[len(resp.Data)-1]
-	videoDim := &data.Video{
-		AwemeId:            rawData.EntityId,
-		TotalLikes:         toInt64(latestTrend.LikeCount),
-		TotalComments:      toInt64(latestTrend.CommentCount),
-		TotalShares:        toInt64(latestTrend.ShareCount),
-		TotalCollects:      toInt64(latestTrend.CollectCount),
-		TotalSalesGmv:      toInt64(latestTrend.SalesGmv),
-		TotalSalesVolume:   toInt64(latestTrend.SalesCount),
-		InteractionRateStr: "", // 需要根据实际数据赋值，如有字段请补充
-		GpmStr:             latestTrend.GPMStr,
-	}
-	if err := p.videoRepo.Upsert(ctx, videoDim); err != nil {
-		return &ProcessError{Msg: "upsert video dimension failed", SourceID: rawData.Id, Err: err}
 	}
 
 	// 2. 批量 upsert 每日趋势快照

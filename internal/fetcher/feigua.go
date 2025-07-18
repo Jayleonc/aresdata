@@ -41,7 +41,7 @@ func NewFeiguaFetcher(c *conf.Data, logger log.Logger) *FeiguaFetcher {
 		log:  log.NewHelper(log.With(logger, "module", "fetcher/feigua")),
 		conf: c,
 		client: &http.Client{
-			Timeout:   30 * time.Second,
+			Timeout:   150 * time.Second,
 			Transport: throttledTransport, // 核心：将客户端的 Transport 设置为我们自己的节流 Transport
 		},
 	}

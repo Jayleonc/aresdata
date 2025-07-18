@@ -11,8 +11,8 @@ import (
 	"aresdata/internal/conf"
 	"aresdata/internal/data"
 	"aresdata/internal/etl"
+	"aresdata/internal/fetcher"
 	"aresdata/internal/task"
-	"aresdata/pkg/fetcher"
 	"github.com/go-kratos/kratos/v2/log"
 )
 
@@ -27,18 +27,23 @@ func wireApp(bootstrap *conf.Bootstrap, confData *conf.Data, logger log.Logger) 
 	sourceDataRepo := data.NewSourceDataRepo(dataData, logger)
 	feiguaFetcher := fetcher.NewFeiguaFetcher(confData, logger)
 	fetcherUsecase := biz.NewFetcherUsecase(sourceDataRepo, feiguaFetcher, logger)
-	fetchVideoRankTask := task.NewFetchVideoRankTask(fetcherUsecase)
+	fetchVideoRankTask := task.NewFetchVideoRankTask(fetcherUsecase, logger)
 	videoRankRepo := data.NewVideoRankRepo(dataData)
 	videoRepo := data.NewVideoRepo(dataData)
-	videoRankProcessor := etl.NewVideoRankProcessor(videoRankRepo, sourceDataRepo, videoRepo)
+	productRepo := data.NewProductRepo(dataData)
+	bloggerRepo := data.NewBloggerRepo(dataData)
+	videoRankProcessor := etl.NewVideoRankProcessor(videoRankRepo, sourceDataRepo, videoRepo, productRepo, bloggerRepo, logger)
 	videoTrendStatRepo := data.NewVideoTrendStatRepo(dataData)
 	videoTrendProcessor := etl.NewVideoTrendProcessor(sourceDataRepo, videoRepo, videoTrendStatRepo, logger)
-	etlUsecase := etl.NewETLUsecase(sourceDataRepo, videoRankProcessor, videoTrendProcessor)
+	videoSummaryProcessor := etl.NewVideoSummaryProcessor(sourceDataRepo, videoRepo, logger)
+	etlUsecase := etl.NewETLUsecase(sourceDataRepo, videoRankProcessor, videoTrendProcessor, videoSummaryProcessor)
 	processVideoRankTask := task.NewProcessVideoRankTask(etlUsecase)
 	videoRankUsecase := biz.NewVideoRankUsecase(videoRankRepo)
 	fetchVideoTrendTask := task.NewFetchVideoTrendTask(fetcherUsecase, videoRankUsecase, logger)
 	processVideoTrendTask := task.NewProcessVideoTrendTask(etlUsecase)
-	v := task.NewTaskSet(fetchVideoRankTask, processVideoRankTask, fetchVideoTrendTask, processVideoTrendTask)
+	fetchVideoSummaryTask := task.NewFetchVideoSummaryTask(fetcherUsecase, videoRepo, logger)
+	processVideoSummaryTask := task.NewProcessVideoSummaryTask(etlUsecase)
+	v := task.NewTaskSet(fetchVideoRankTask, processVideoRankTask, fetchVideoTrendTask, processVideoTrendTask, fetchVideoSummaryTask, processVideoSummaryTask)
 	app := newApp(logger, v)
 	return app, func() {
 		cleanup()
