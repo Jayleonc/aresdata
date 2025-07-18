@@ -18,23 +18,23 @@ type Video struct {
 	AwemePubTime  time.Time
 	BloggerId     int64 `gorm:"index"`
 
-	// --- 新增：总览数据 (来自趋势接口的最新一条) ---
-	TotalLikes          int64
-	TotalComments       int64
-	TotalShares         int64
-	TotalCollects       int64
-	TotalSalesGmvStr    string `gorm:"size:255"`
-	TotalSalesVolumeStr string `gorm:"size:255"`
-	InteractionRateStr  string `gorm:"size:255"`
-	GpmStr              string `gorm:"size:255"`
+	// --- 新增：总览数据 (来自趋势接口或总量接口的最新一条) ---
+	TotalLikes         int64  `gorm:"type:integer"`
+	TotalComments      int64  `gorm:"type:integer"`
+	TotalShares        int64  `gorm:"type:integer"`
+	TotalCollects      int64  `gorm:"type:integer"`
+	TotalSalesGmv      int64  `gorm:"type:integer;comment:累计销售额，单位分"`
+	TotalSalesVolume   int64  `gorm:"type:integer;comment:累计销量"`
+	InteractionRateStr string `gorm:"size:255"`
+	GpmStr             string `gorm:"size:255"`
 
 	// --- 详情信息 (来自下钻采集) ---
-	DyTagsJson          string `gorm:"type:text"`
-	HotSearchWordsJson  string `gorm:"type:text"`
-	TopicsJson          string `gorm:"type:text"`
-	CommentSegmentsJson string `gorm:"type:text"`
-	InteractionJson     string `gorm:"type:text"`
-	AudienceProfileJson string `gorm:"type:text"`
+	DyTagsJSON          string `gorm:"type:text"`
+	HotSearchWordsJSON  string `gorm:"type:text"`
+	TopicsJSON          string `gorm:"type:text"`
+	CommentSegmentsJSON string `gorm:"type:text"`
+	InteractionJSON     string `gorm:"type:text"`
+	AudienceProfileJSON string `gorm:"type:text"`
 }
 
 func (Video) TableName() string {
@@ -43,6 +43,8 @@ func (Video) TableName() string {
 
 type VideoRepo interface {
 	Upsert(ctx context.Context, video *Video) error
+	// FindVideosNeedingSummaryUpdate 查找需要更新总览数据的视频
+	FindVideosNeedingSummaryUpdate(ctx context.Context, limit int) ([]*VideoForSummary, error)
 }
 
 type videoRepo struct {
@@ -68,8 +70,8 @@ func (r *videoRepo) Upsert(ctx context.Context, video *Video) error {
 			"total_comments",
 			"total_shares",
 			"total_collects",
-			"total_sales_gmv_str",
-			"total_sales_volume_str",
+			"total_sales_gmv",
+			"total_sales_volume",
 			"interaction_rate_str",
 			"gpm_str",
 			"dy_tags_json",

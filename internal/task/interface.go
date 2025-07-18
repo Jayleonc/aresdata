@@ -5,10 +5,12 @@ import (
 )
 
 const (
-	FetchVideoRank    = "fetch:video_rank"
-	FetchVideoTrend   = "fetch:video_trend"
-	ProcessVideoRank  = "process:video_rank"
-	ProcessVideoTrend = "process:video_trend"
+	FetchVideoRank      = "fetch:video_rank"
+	FetchVideoTrend     = "fetch:video_trend"
+	ProcessVideoRank    = "process:video_rank"
+	ProcessVideoTrend   = "process:video_trend"
+	FetchVideoSummary   = "fetch:video_summary"
+	ProcessVideoSummary = "process:video_summary"
 )
 
 // Task 定义了所有可执行任务的标准接口

@@ -97,7 +97,21 @@ func main() {
 				log.NewHelper(logger).Errorf("Fetch task %s failed: %v", fetchTask.Name(), err)
 			}
 		})
-		// TODO: 在这里添加趋势采集等其他定时任务
+
+		// 每天4点执行，采集和处理视频总览数据
+		app.cron.AddFunc("0 0 4 * * *", func() {
+			log.NewHelper(logger).Info("Cron triggered for task: fetch:video_summary")
+			fetchTask := app.tasks[task.FetchVideoSummary]
+			if err := fetchTask.Run(context.Background()); err == nil {
+				log.NewHelper(logger).Info("Fetch summary task succeeded, triggering ETL task: process:video_summary")
+				etlTask := app.tasks[task.ProcessVideoSummary]
+				if err_etl := etlTask.Run(context.Background()); err_etl != nil {
+					log.NewHelper(logger).Errorf("ETL task %s failed: %v", etlTask.Name(), err_etl)
+				}
+			} else {
+				log.NewHelper(logger).Errorf("Fetch task %s failed: %v", fetchTask.Name(), err)
+			}
+		})
 		app.cron.Start()
 		select {}
 	}

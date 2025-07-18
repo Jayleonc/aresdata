@@ -15,10 +15,13 @@ import (
 
 func wireApp(*conf.Bootstrap, *conf.Data, log.Logger) (*App, func(), error) {
 	panic(wire.Build(
-		data.ProviderSet, // 提供 Repos
-		biz.ProviderSet,  // 提供 Usecases，它依赖 Repos
+		data.ProviderSet,             // 提供 Repos
+		biz.ProviderSet,              // 提供 Usecases，它依赖 Repos
+		etl.NewVideoSummaryProcessor, // 新增
 		etl.ProviderSet,
-		task.ProviderSet, // 提供 Tasks，它依赖 Usecases
+		task.NewFetchVideoSummaryTask,   // 新增
+		task.NewProcessVideoSummaryTask, // 新增
+		task.ProviderSet,                // 提供 Tasks，它依赖 Usecases
 		newApp,
 	))
 }

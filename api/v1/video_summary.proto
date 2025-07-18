@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+package v1;
+
+// 视频总览数据 DTO
+message VideoSummaryDTO {
+    string play_count_str = 1;
+    string like_count_str = 2;
+    string comment_count_str = 3;
+    string share_count_str = 4;
+    string collect_count_str = 5;
+    string interaction_rate_str = 6;
+    string score = 7;
+    string like_comment_rate_str = 8;
+    string sales_gmv_str = 9;
+    string sales_count_str = 10;
+    string goods_count_str = 11;
+    string gpm = 12;
+    int32 aweme_type = 13;
+}
+
+// 飞瓜原始响应的内层 Data 结构
+message FeiguaVideoSummaryData {
+    VideoSummaryDTO Data = 1;
+}

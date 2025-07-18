@@ -155,3 +155,49 @@ func (f *FeiguaFetcher) FetchVideoTrend(ctx context.Context, awemeID string) (st
 
 	return string(body), meta, nil
 }
+
+// FetchVideoSummary 采集单个视频的总览数据
+func (f *FeiguaFetcher) FetchVideoSummary(ctx context.Context, awemeID, dateCode string) (string, *RequestMetadata, error) {
+	apiEndpoint := f.conf.Feigua.BaseUrl + "/api/v3/aweme/detail/detail/sumData"
+
+	params := url.Values{}
+	params.Set("awemeId", awemeID)
+	params.Set("dateCode", dateCode) // 使用传入的 dateCode，通常是发布日期
+	params.Set("_", fmt.Sprintf("%d", time.Now().UnixMilli()))
+
+	fullUrl := apiEndpoint + "?" + params.Encode()
+	f.log.WithContext(ctx).Infof("Requesting Summary URL: %s", fullUrl)
+
+	req, err := http.NewRequestWithContext(ctx, "GET", fullUrl, nil)
+	if err != nil {
+		return "", nil, fmt.Errorf("failed to create request for video summary: %w", err)
+	}
+
+	req.Header.Set("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36")
+	req.Header.Set("Cookie", f.conf.Feigua.Cookie)
+
+	headersJson, _ := json.Marshal(req.Header)
+	meta := &RequestMetadata{
+		Method:  "GET",
+		URL:     apiEndpoint,
+		Params:  params.Encode(),
+		Headers: string(headersJson),
+	}
+
+	resp, err := f.client.Do(req)
+	if err != nil {
+		return "", meta, fmt.Errorf("failed to execute request for video summary: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return "", meta, fmt.Errorf("bad status code for video summary: %d", resp.StatusCode)
+	}
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return "", meta, fmt.Errorf("failed to read response body for video summary: %w", err)
+	}
+
+	return string(body), meta, nil
+}

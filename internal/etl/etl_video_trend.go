@@ -65,14 +65,15 @@ func (p *VideoTrendProcessor) Process(ctx context.Context, rawData *v1.SourceDat
 	// 1. 更新 Video 维度表（只更新总览字段）
 	latestTrend := resp.Data[len(resp.Data)-1]
 	videoDim := &data.Video{
-		AwemeId:             rawData.EntityId,
-		TotalLikes:          toInt64(latestTrend.LikeCount),
-		TotalComments:       toInt64(latestTrend.CommentCount),
-		TotalShares:         toInt64(latestTrend.ShareCount),
-		TotalCollects:       toInt64(latestTrend.CollectCount),
-		TotalSalesGmvStr:    latestTrend.SalesGmvStr,
-		TotalSalesVolumeStr: latestTrend.SalesCountStr,
-		GpmStr:              latestTrend.GPMStr,
+		AwemeId:            rawData.EntityId,
+		TotalLikes:         toInt64(latestTrend.LikeCount),
+		TotalComments:      toInt64(latestTrend.CommentCount),
+		TotalShares:        toInt64(latestTrend.ShareCount),
+		TotalCollects:      toInt64(latestTrend.CollectCount),
+		TotalSalesGmv:      toInt64(latestTrend.SalesGmv),
+		TotalSalesVolume:   toInt64(latestTrend.SalesCount),
+		InteractionRateStr: "", // 需要根据实际数据赋值，如有字段请补充
+		GpmStr:             latestTrend.GPMStr,
 	}
 	if err := p.videoRepo.Upsert(ctx, videoDim); err != nil {
 		return &ProcessError{Msg: "upsert video dimension failed", SourceID: rawData.Id, Err: err}
