@@ -255,9 +255,6 @@ type VideoRankDTO struct {
 	Id int64 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
 	// 创建时间
 	CreatedAt *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	// 榜单核心
-	// 榜单排名
-	RankNum int32 `protobuf:"varint,3,opt,name=rank_num,json=rankNum,proto3" json:"rank_num,omitempty"`
 	// 榜单周期类型，如日榜、周榜
 	PeriodType string `protobuf:"bytes,4,opt,name=period_type,json=periodType,proto3" json:"period_type,omitempty"`
 	// 榜单日期
@@ -373,13 +370,6 @@ func (x *VideoRankDTO) GetCreatedAt() *timestamppb.Timestamp {
 		return x.CreatedAt
 	}
 	return nil
-}
-
-func (x *VideoRankDTO) GetRankNum() int32 {
-	if x != nil {
-		return x.RankNum
-	}
-	return 0
 }
 
 func (x *VideoRankDTO) GetPeriodType() string {
@@ -623,12 +613,11 @@ const file_v1_video_rank_proto_rawDesc = "" +
 	"\trank_date\x18\x03 \x01(\tR\brankDate\"_\n" +
 	"\x15ListVideoRankResponse\x12!\n" +
 	"\x04page\x18\x01 \x01(\v2\r.PageResponseR\x04page\x12#\n" +
-	"\x05ranks\x18\x02 \x03(\v2\r.VideoRankDTOR\x05ranks\"\xf9\t\n" +
+	"\x05ranks\x18\x02 \x03(\v2\r.VideoRankDTOR\x05ranks\"\xde\t\n" +
 	"\fVideoRankDTO\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x129\n" +
 	"\n" +
-	"created_at\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x12\x19\n" +
-	"\brank_num\x18\x03 \x01(\x05R\arankNum\x12\x1f\n" +
+	"created_at\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x12\x1f\n" +
 	"\vperiod_type\x18\x04 \x01(\tR\n" +
 	"periodType\x12\x1b\n" +
 	"\trank_date\x18\x05 \x01(\tR\brankDate\x12\x1d\n" +

@@ -1,0 +1,99 @@
+syntax = "proto3";
+
+import "google/api/annotations.proto";
+import "google/protobuf/timestamp.proto";
+import "v1/page.proto";
+
+option go_package = "aresdata/api/v1;v1";
+
+// VideoService 提供视频维度数据的查询服务
+service VideoService {
+	// 分页查询视频信息
+	rpc ListVideos(ListVideosRequest) returns (ListVideosResponse) {
+		option (google.api.http) = {
+			post: "/v1/videos/list",
+			body: "*"
+		};
+	}
+	// 查询单个视频信息
+	rpc GetVideo(VideoQueryRequest) returns (VideoQueryResponse) {
+		option (google.api.http) = {
+			post: "/v1/videos/detail",
+			body: "*"
+		};
+	}
+}
+
+// 视频维度数据 DTO
+message VideoDTO {
+	// 主键ID
+	string aweme_id = 1;
+	// 创建时间
+	google.protobuf.Timestamp created_at = 2;
+	// 更新时间
+	google.protobuf.Timestamp updated_at = 3;
+	// 视频描述
+	string aweme_desc = 4;
+	// 视频封面URL
+	string aweme_cover_url = 5;
+	// 视频发布时间
+	google.protobuf.Timestamp aweme_pub_time = 6;
+	// 博主ID
+	int64 blogger_id = 7;
+	// 播放量字符串
+	string play_count_str = 8;
+	// 点赞量字符串
+	string like_count_str = 9;
+	// 评论量字符串
+	string comment_count_str = 10;
+	// 分享量字符串
+	string share_count_str = 11;
+	// 收藏量字符串
+	string collect_count_str = 12;
+	// 互动率字符串
+	string interaction_rate_str = 13;
+	// 分数字符串
+	string score_str = 14;
+	// 点赞评论率字符串
+	string like_comment_rate_str = 15;
+	// 销售GMV字符串
+	string sales_gmv_str = 16;
+	// 销售量字符串
+	string sales_count_str = 17;
+	// 商品量字符串
+	string goods_count_str = 18;
+	// 商品数字符串
+	string gpm_str = 19;
+	// 视频类型
+	int32 aweme_type = 20;
+	// 汇总更新时间
+	google.protobuf.Timestamp summary_updated_at = 21;
+}
+
+// 分页查询视频请求
+message ListVideosRequest {
+	// 分页参数
+	PageRequest page = 1;
+	// 模糊查询关键字 (将作用于 aweme_desc 字段)
+	string query = 2;
+	// 排序字段 (例如: "aweme_pub_time", "summary_updated_at")
+	string sort_by = 3;
+	// 排序方向（1:ASC / 2:DESC）
+	SortOrder sort_order = 4;
+}
+
+// 分页查询视频响应
+message ListVideosResponse {
+	PageResponse page = 1;
+	repeated VideoDTO videos = 2;
+}
+
+// 查询单个视频信息请求
+message VideoQueryRequest {
+	string aweme_id = 1;
+}
+
+// 查询单个视频信息响应
+message VideoQueryResponse {
+	VideoDTO video = 1;
+}

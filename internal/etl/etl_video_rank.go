@@ -45,7 +45,6 @@ type FeiguaBloggerDto struct {
 }
 
 type FeiguaVideoRankItem struct {
-	RankNum      json.Number      `json:"rankNum"`
 	AwemeDto     FeiguaAwemeDto   `json:"baseAwemeDto"`
 	GoodsDto     FeiguaGoodsDto   `json:"baseGoodsDto"`
 	BloggerDto   FeiguaBloggerDto `json:"baseBloggerDto"`
@@ -141,7 +140,7 @@ func (p *VideoRankProcessor) Process(ctx context.Context, rawData *v1.SourceData
 
 		vr := &data.VideoRank{
 			// Rank Info
-			RankNum:    int(toInt64(item.RankNum)),
+
 			PeriodType: period,
 			RankDate:   rankDate,
 			StartDate:  startDate,

@@ -1,0 +1,72 @@
+syntax = "proto3";
+
+import "google/api/annotations.proto";
+import "google/protobuf/timestamp.proto";
+import "v1/page.proto";
+
+option go_package = "aresdata/api/v1;v1";
+// BloggerService 提供视频博主维度数据的查询服务
+service BloggerService {
+	// 查询单个视频博主信息
+	rpc GetBlogger(BloggerQueryRequest) returns (BloggerQueryResponse) {
+		option (google.api.http) = {
+			post: "/v1/bloggers/detail",
+			body: "*"
+		};
+	}
+	// 分页查询视频博主信息
+	rpc ListBloggers(ListBloggersRequest) returns (ListBloggersResponse) {
+		option (google.api.http) = {
+			post: "/v1/bloggers/list",
+			body: "*"
+		};
+	}
+}
+
+// 视频博主维度数据 DTO
+// 视频博主维度数据 DTO
+message BloggerDTO {
+	// 博主ID
+	int64 blogger_id = 1;
+	// 创建时间
+	google.protobuf.Timestamp created_at = 2;
+	// 更新时间
+	google.protobuf.Timestamp updated_at = 3;
+	// 昵称
+	string blogger_uid = 4;
+	// 头像URL
+	string blogger_name = 5;
+	// 头像URL
+	string blogger_avatar = 6;
+	// 粉丝数量
+	int64 blogger_fans_num = 7;
+	// 标签
+	string blogger_tag = 8;
+}
+
+// 分页查询视频博主请求
+message ListBloggersRequest {
+	// 分页参数
+	PageRequest page = 1;
+	// 模糊查询关键字 (将作用于 blogger_name 字段)
+	string query = 2;
+	// 排序字段 (例如: "blogger_fans_num", "updated_at")
+	string sort_by = 3;
+	// 排序方向 (ASC / DESC)
+	SortOrder sort_order = 4;
+}
+
+// 分页查询视频博主响应
+message ListBloggersResponse {
+	PageResponse page = 1;
+	repeated BloggerDTO bloggers = 2;
+}
+
+message BloggerQueryRequest {
+	// 博主ID
+	int64 blogger_id = 1;
+}	
+
+message BloggerQueryResponse {
+	BloggerDTO blogger = 1;
+}

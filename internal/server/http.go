@@ -12,7 +12,12 @@ import (
 )
 
 // NewHTTPServer new an HTTP server.
-func NewHTTPServer(c *conf.Server, videoRank *service.VideoRankService, logger log.Logger) *http.Server {
+func NewHTTPServer(c *conf.Server,
+	videoRank *service.VideoRankService,
+	videoService *service.VideoServiceService,
+	productService *service.ProductServiceService,
+	blogger *service.BloggerServiceService,
+	logger log.Logger) *http.Server {
 	var opts = []http.ServerOption{
 		http.Middleware(
 			recovery.Recovery(),
@@ -41,6 +46,9 @@ func NewHTTPServer(c *conf.Server, videoRank *service.VideoRankService, logger l
 	srv := http.NewServer(opts...)
 
 	v1.RegisterVideoRankHTTPServer(srv, videoRank)
+	v1.RegisterVideoServiceHTTPServer(srv, videoService)
+	v1.RegisterProductServiceHTTPServer(srv, productService)
+	v1.RegisterBloggerServiceHTTPServer(srv, blogger)
 
 	// 添加 OpenAPI 文档路由
 	srv.Handle("/openapi.yaml", OpenAPIHandler("./openapi.yaml"))

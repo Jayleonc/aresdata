@@ -63,8 +63,7 @@ message VideoRankDTO {
     google.protobuf.Timestamp created_at = 2;
 
 	// 榜单核心
-	    // 榜单排名
-    int32 rank_num = 3;
+	
 	    // 榜单周期类型，如日榜、周榜
     string period_type = 4;
 	    // 榜单日期

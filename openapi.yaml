@@ -6,6 +6,44 @@ info:
     title: ""
     version: 0.0.1
 paths:
+    /v1/bloggers/detail:
+        post:
+            tags:
+                - BloggerService
+            description: 查询单个视频博主信息
+            operationId: BloggerService_GetBlogger
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/.BloggerQueryRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/.BloggerQueryResponse'
+    /v1/bloggers/list:
+        post:
+            tags:
+                - BloggerService
+            description: 分页查询视频博主信息
+            operationId: BloggerService_ListBloggers
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/.ListBloggersRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/.ListBloggersResponse'
     /v1/hello:
         get:
             tags:
@@ -19,6 +57,44 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/.HelloReply'
+    /v1/products/detail:
+        post:
+            tags:
+                - ProductService
+            description: 查询单个商品信息
+            operationId: ProductService_GetProduct
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/.ProductQueryRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/.ProductQueryResponse'
+    /v1/products/list:
+        post:
+            tags:
+                - ProductService
+            description: 分页查询商品信息
+            operationId: ProductService_ListProducts
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/.ListProductsRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/.ListProductsResponse'
     /v1/video_rank:
         post:
             tags:
@@ -57,14 +133,151 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/.ListVideoRankResponse'
+    /v1/videos/detail:
+        post:
+            tags:
+                - VideoService
+            description: 查询单个视频信息
+            operationId: VideoService_GetVideo
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/.VideoQueryRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/.VideoQueryResponse'
+    /v1/videos/list:
+        post:
+            tags:
+                - VideoService
+            description: 分页查询视频信息
+            operationId: VideoService_ListVideos
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/.ListVideosRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/.ListVideosResponse'
 components:
     schemas:
+        .BloggerDTO:
+            type: object
+            properties:
+                bloggerId:
+                    type: string
+                    description: 博主ID
+                createdAt:
+                    type: string
+                    description: 创建时间
+                    format: date-time
+                updatedAt:
+                    type: string
+                    description: 更新时间
+                    format: date-time
+                bloggerUid:
+                    type: string
+                    description: 昵称
+                bloggerName:
+                    type: string
+                    description: 头像URL
+                bloggerAvatar:
+                    type: string
+                    description: 头像URL
+                bloggerFansNum:
+                    type: string
+                    description: 粉丝数量
+                bloggerTag:
+                    type: string
+                    description: 标签
+            description: |-
+                视频博主维度数据 DTO
+                 视频博主维度数据 DTO
+        .BloggerQueryRequest:
+            type: object
+            properties:
+                bloggerId:
+                    type: string
+                    description: 博主ID
+        .BloggerQueryResponse:
+            type: object
+            properties:
+                blogger:
+                    $ref: '#/components/schemas/.BloggerDTO'
         .HelloReply:
             type: object
             properties:
                 message:
                     type: string
             description: Hello 方法的响应
+        .ListBloggersRequest:
+            type: object
+            properties:
+                page:
+                    allOf:
+                        - $ref: '#/components/schemas/.PageRequest'
+                    description: 分页参数
+                query:
+                    type: string
+                    description: 模糊查询关键字 (将作用于 blogger_name 字段)
+                sortBy:
+                    type: string
+                    description: '排序字段 (例如: "blogger_fans_num", "updated_at")'
+                sortOrder:
+                    type: integer
+                    description: 排序方向 (ASC / DESC)
+                    format: enum
+            description: 分页查询视频博主请求
+        .ListBloggersResponse:
+            type: object
+            properties:
+                page:
+                    $ref: '#/components/schemas/.PageResponse'
+                bloggers:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/.BloggerDTO'
+            description: 分页查询视频博主响应
+        .ListProductsRequest:
+            type: object
+            properties:
+                page:
+                    allOf:
+                        - $ref: '#/components/schemas/.PageRequest'
+                    description: 分页参数
+                query:
+                    type: string
+                    description: 模糊查询关键字 (将作用于 goods_title 字段)
+                sortBy:
+                    type: string
+                    description: '排序字段 (例如: "created_at", "goods_price")'
+                sortOrder:
+                    type: integer
+                    description: '排序方向（1: ASC, 2: DESC）'
+                    format: enum
+            description: 分页查询商品请求
+        .ListProductsResponse:
+            type: object
+            properties:
+                page:
+                    $ref: '#/components/schemas/.PageResponse'
+                products:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/.ProductDTO'
+            description: 分页查询商品响应
         .ListVideoRankRequest:
             type: object
             properties:
@@ -92,6 +305,34 @@ components:
                         $ref: '#/components/schemas/.VideoRankDTO'
                     description: 视频榜单信息列表
             description: 分页查询响应
+        .ListVideosRequest:
+            type: object
+            properties:
+                page:
+                    allOf:
+                        - $ref: '#/components/schemas/.PageRequest'
+                    description: 分页参数
+                query:
+                    type: string
+                    description: 模糊查询关键字 (将作用于 aweme_desc 字段)
+                sortBy:
+                    type: string
+                    description: '排序字段 (例如: "aweme_pub_time", "summary_updated_at")'
+                sortOrder:
+                    type: integer
+                    description: 排序方向（1:ASC / 2:DESC）
+                    format: enum
+            description: 分页查询视频请求
+        .ListVideosResponse:
+            type: object
+            properties:
+                page:
+                    $ref: '#/components/schemas/.PageResponse'
+                videos:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/.VideoDTO'
+            description: 分页查询视频响应
         .PageRequest:
             type: object
             properties:
@@ -106,6 +347,146 @@ components:
                 total:
                     type: string
             description: 分页响应
+        .ProductDTO:
+            type: object
+            properties:
+                goodsId:
+                    type: string
+                    description: 商品 ID
+                createdAt:
+                    type: string
+                    description: 创建时间
+                    format: date-time
+                updatedAt:
+                    type: string
+                    description: 更新时间
+                    format: date-time
+                goodsTitle:
+                    type: string
+                    description: 商品标题
+                goodsCoverUrl:
+                    type: string
+                    description: 商品封面 URL
+                goodsPriceRange:
+                    type: string
+                    description: 商品价格范围
+                goodsPrice:
+                    type: number
+                    description: 商品价格
+                    format: double
+                cosRatio:
+                    type: string
+                    description: 成本占比
+                commissionPrice:
+                    type: string
+                    description: 佣金价格
+                shopName:
+                    type: string
+                    description: 店铺名称
+                brandName:
+                    type: string
+                    description: 品牌名称
+                categoryNames:
+                    type: string
+                    description: 商品类目名称
+            description: 商品维度数据 DTO
+        .ProductQueryRequest:
+            type: object
+            properties:
+                goodsId:
+                    type: string
+                    description: 商品 ID
+            description: 查询单个商品请求
+        .ProductQueryResponse:
+            type: object
+            properties:
+                product:
+                    $ref: '#/components/schemas/.ProductDTO'
+            description: 查询单个商品响应
+        .VideoDTO:
+            type: object
+            properties:
+                awemeId:
+                    type: string
+                    description: 主键ID
+                createdAt:
+                    type: string
+                    description: 创建时间
+                    format: date-time
+                updatedAt:
+                    type: string
+                    description: 更新时间
+                    format: date-time
+                awemeDesc:
+                    type: string
+                    description: 视频描述
+                awemeCoverUrl:
+                    type: string
+                    description: 视频封面URL
+                awemePubTime:
+                    type: string
+                    description: 视频发布时间
+                    format: date-time
+                bloggerId:
+                    type: string
+                    description: 博主ID
+                playCountStr:
+                    type: string
+                    description: 播放量字符串
+                likeCountStr:
+                    type: string
+                    description: 点赞量字符串
+                commentCountStr:
+                    type: string
+                    description: 评论量字符串
+                shareCountStr:
+                    type: string
+                    description: 分享量字符串
+                collectCountStr:
+                    type: string
+                    description: 收藏量字符串
+                interactionRateStr:
+                    type: string
+                    description: 互动率字符串
+                scoreStr:
+                    type: string
+                    description: 分数字符串
+                likeCommentRateStr:
+                    type: string
+                    description: 点赞评论率字符串
+                salesGmvStr:
+                    type: string
+                    description: 销售GMV字符串
+                salesCountStr:
+                    type: string
+                    description: 销售量字符串
+                goodsCountStr:
+                    type: string
+                    description: 商品量字符串
+                gpmStr:
+                    type: string
+                    description: 商品数字符串
+                awemeType:
+                    type: integer
+                    description: 视频类型
+                    format: int32
+                summaryUpdatedAt:
+                    type: string
+                    description: 汇总更新时间
+                    format: date-time
+            description: 视频维度数据 DTO
+        .VideoQueryRequest:
+            type: object
+            properties:
+                awemeId:
+                    type: string
+            description: 查询单个视频信息请求
+        .VideoQueryResponse:
+            type: object
+            properties:
+                video:
+                    $ref: '#/components/schemas/.VideoDTO'
+            description: 查询单个视频信息响应
         .VideoRankDTO:
             type: object
             properties:
@@ -116,12 +497,6 @@ components:
                     type: string
                     description: 创建时间
                     format: date-time
-                rankNum:
-                    type: integer
-                    description: |-
-                        榜单核心
-                         榜单排名
-                    format: int32
                 periodType:
                     type: string
                     description: 榜单周期类型，如日榜、周榜
@@ -250,6 +625,12 @@ components:
                     $ref: '#/components/schemas/.VideoRankDTO'
             description: VideoRank 查询响应
 tags:
+    - name: BloggerService
+      description: BloggerService 提供视频博主维度数据的查询服务
     - name: Fetcher
+    - name: ProductService
+      description: ProductService 提供商品维度数据的查询服务
     - name: VideoRank
       description: VideoRank 提供榜单视频排名查询服务
+    - name: VideoService
+      description: VideoService 提供视频维度数据的查询服务

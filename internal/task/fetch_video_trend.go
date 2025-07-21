@@ -2,51 +2,69 @@ package task
 
 import (
 	"aresdata/internal/biz"
+	"aresdata/internal/data"
 	"context"
-	"time"
-
 	"github.com/go-kratos/kratos/v2/log"
+	"sync"
 )
 
+// FetchVideoTrendTask 负责每日拉取视频趋势数据的任务
 type FetchVideoTrendTask struct {
-	fetcherUC *biz.FetcherUsecase
-	rankUC    *biz.VideoRankUsecase // 依赖 VideoRankUsecase 获取ID
-	log       *log.Helper
+	videoRepo  data.VideoRepo
+	fetcherBiz *biz.FetcherUsecase
+	log        *log.Helper
 }
 
-// NewFetchVideoTrendTask 构造函数现在注入两个 Usecase
-func NewFetchVideoTrendTask(fetcherUC *biz.FetcherUsecase, rankUC *biz.VideoRankUsecase, logger log.Logger) *FetchVideoTrendTask {
+// NewFetchVideoTrendTask 构造任务实例
+func NewFetchVideoTrendTask(repo data.VideoRepo, biz *biz.FetcherUsecase, logger log.Logger) *FetchVideoTrendTask {
 	return &FetchVideoTrendTask{
-		fetcherUC: fetcherUC,
-		rankUC:    rankUC,
-		log:       log.NewHelper(log.With(logger, "module", "task/fetch-video-trend")),
+		videoRepo:  repo,
+		fetcherBiz: biz,
+		log:        log.NewHelper(logger),
 	}
 }
 
 func (t *FetchVideoTrendTask) Name() string {
-	return FetchVideoTrend
+	return ProcessVideoTrend
 }
 
-func (t *FetchVideoTrendTask) Run(ctx context.Context, args ...string) error {
-	// 1. 通过业务层获取需要追踪的 aweme_id 列表 (查询逻辑已内聚到 biz 和 data 层)
-	awemeIDs, err := t.rankUC.GetTrackedAwemeIDs(ctx, 7) // 查询近7天
+// Run 任务的执行入口
+func (t *FetchVideoTrendTask) Run() {
+	t.log.Info("开始执行 [每日视频趋势] 拉取任务...")
+	ctx := context.Background()
+
+	// 1. 获取过去30天内活跃的视频ID
+	awemeIds, err := t.videoRepo.FindRecentActiveAwemeIds(ctx, 30)
 	if err != nil {
-		t.log.WithContext(ctx).Errorf("获取需要追踪的 aweme_id 列表失败: %v", err)
-		return err
+		t.log.Errorf("获取活跃视频ID失败: %v", err)
+		return
 	}
-	t.log.WithContext(ctx).Infof("开始采集 %d 个视频的趋势数据", len(awemeIDs))
+	t.log.Infof("发现 %d 个活跃视频需要同步趋势数据", len(awemeIds))
 
-	// 2. 依次采集并存储趋势
-	for _, id := range awemeIDs {
-		_, err := t.fetcherUC.FetchAndStoreVideoTrend(ctx, id)
-		if err != nil {
-			t.log.WithContext(ctx).Errorf("采集并入库 awemeId %s 趋势数据失败: %v", id, err)
-		} else {
-			t.log.WithContext(ctx).Infof("已成功下发采集趋势任务，awemeId: %s", id)
-		}
-		time.Sleep(1 * time.Second)
+	// 2. 并发拉取和保存数据 (可以设置并发度)
+	var wg sync.WaitGroup
+	concurrency := 5 // 同时处理5个视频
+	idChannel := make(chan string, len(awemeIds))
+
+	for _, id := range awemeIds {
+		idChannel <- id
+	}
+	close(idChannel)
+
+	for i := 0; i < concurrency; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			for awemeId := range idChannel {
+				t.log.Infof("正在处理视频: %s", awemeId)
+				err := t.fetcherBiz.FetchAndSaveVideoTrend(ctx, awemeId)
+				if err != nil {
+					t.log.Errorf("处理视频 %s 失败: %v", awemeId, err)
+				}
+			}
+		}()
 	}
 
-	t.log.WithContext(ctx).Info("全部视频趋势采集任务已下发完毕。")
-	return nil
+	wg.Wait()
+	t.log.Info("[每日视频趋势] 拉取任务执行完毕。")
 }

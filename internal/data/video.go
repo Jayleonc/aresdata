@@ -1,9 +1,13 @@
 package data
 
 import (
+	v1 "aresdata/api/v1"
 	"context"
-	"gorm.io/gorm/clause"
 	"time"
+
+	"gorm.io/gorm/clause"
+
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 // Video 视频维度表
@@ -52,6 +56,9 @@ type VideoRepo interface {
 	UpsertFromRank(ctx context.Context, video *Video) error    // 新方法
 	UpdateFromSummary(ctx context.Context, video *Video) error // 新方法
 	FindVideosNeedingSummaryUpdate(ctx context.Context, limit int) ([]*VideoForSummary, error)
+	ListPage(ctx context.Context, page, size int, query, sortBy string, sortOrder v1.SortOrder) ([]*Video, int64, error)
+	Get(ctx context.Context, awemeId string) (*Video, error)
+	FindRecentActiveAwemeIds(ctx context.Context, days int) ([]string, error) // 新增此行
 }
 
 type videoRepo struct {
@@ -76,4 +83,97 @@ func (r *videoRepo) UpsertFromRank(ctx context.Context, video *Video) error {
 func (r *videoRepo) UpdateFromSummary(ctx context.Context, video *Video) error {
 	// 使用 Updates 方法，GORM 将只更新 video 对象中的非零值字段
 	return r.db.WithContext(ctx).Model(&Video{AwemeId: video.AwemeId}).Updates(video).Error
+}
+
+// ListPage 实现分页、模糊查询和排序
+func (r *videoRepo) ListPage(ctx context.Context, page, size int, query, sortBy string, sortOrder v1.SortOrder) ([]*Video, int64, error) {
+	var videos []*Video
+	var total int64
+
+	db := r.db.WithContext(ctx).Model(&Video{})
+
+	// 模糊查询
+	if query != "" {
+		db = db.Where("aweme_desc LIKE ?", "%"+query+"%")
+	}
+
+	// 获取总数
+	if err := db.Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+
+	// 排序逻辑重构
+	if sortBy != "" {
+		var order string
+		switch sortOrder {
+		case v1.SortOrder_ASC:
+			order = sortBy + " ASC"
+		case v1.SortOrder_DESC:
+			order = sortBy + " DESC"
+		default:
+			order = sortBy + " DESC"
+		}
+		db = db.Order(order)
+	} else {
+		// 默认排序
+		db = db.Order("aweme_pub_time DESC")
+	}
+
+	// 分页
+	offset := (page - 1) * size
+	if err := db.Offset(offset).Limit(size).Find(&videos).Error; err != nil {
+		return nil, 0, err
+	}
+
+	return videos, total, nil
+}
+
+// CopyVideoToDTO 将 data.Video 模型转换为 v1.VideoDTO
+func CopyVideoToDTO(v *Video) *v1.VideoDTO {
+	if v == nil {
+		return nil
+	}
+	dto := &v1.VideoDTO{
+		AwemeId:            v.AwemeId,
+		CreatedAt:          timestamppb.New(v.CreatedAt),
+		UpdatedAt:          timestamppb.New(v.UpdatedAt),
+		AwemeDesc:          v.AwemeDesc,
+		AwemeCoverUrl:      v.AwemeCoverUrl,
+		AwemePubTime:       timestamppb.New(v.AwemePubTime),
+		BloggerId:          v.BloggerId,
+		PlayCountStr:       v.PlayCountStr,
+		LikeCountStr:       v.LikeCountStr,
+		CommentCountStr:    v.CommentCountStr,
+		ShareCountStr:      v.ShareCountStr,
+		CollectCountStr:    v.CollectCountStr,
+		InteractionRateStr: v.InteractionRateStr,
+		ScoreStr:           v.ScoreStr,
+		LikeCommentRateStr: v.LikeCommentRateStr,
+		SalesGmvStr:        v.SalesGmvStr,
+		SalesCountStr:      v.SalesCountStr,
+		GoodsCountStr:      v.GoodsCountStr,
+		GpmStr:             v.GpmStr,
+		AwemeType:          v.AwemeType,
+	}
+	if v.SummaryUpdatedAt != nil {
+		dto.SummaryUpdatedAt = timestamppb.New(*v.SummaryUpdatedAt)
+	}
+	return dto
+}
+
+func (r *videoRepo) Get(ctx context.Context, awemeId string) (*Video, error) {
+	var video Video
+	if err := r.db.WithContext(ctx).Where("aweme_id = ?", awemeId).First(&video).Error; err != nil {
+		return nil, err
+	}
+	return &video, nil
+}
+
+// FindRecentActiveAwemeIds 查找最近几天内有更新的视频ID
+func (r *videoRepo) FindRecentActiveAwemeIds(ctx context.Context, days int) ([]string, error) {
+	var awemeIds []string
+	err := r.db.WithContext(ctx).Model(&Video{}).
+		Where("updated_at >= ?", time.Now().AddDate(0, 0, -days)).
+		Pluck("aweme_id", &awemeIds).Error
+	return awemeIds, err
 }

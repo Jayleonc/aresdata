@@ -27,7 +27,7 @@ type VideoRank struct {
 	CreatedAt time.Time `gorm:"autoCreateTime"`
 
 	// 榜单核心
-	RankNum    int    `gorm:"column:rank_num;not null"`
+
 	PeriodType string `gorm:"column:period_type;size:1024;not null"`
 	RankDate   string `gorm:"column:rank_date;size:1024;not null"`
 	StartDate  string `gorm:"column:start_date;size:1024;not null;default:''"`
@@ -155,7 +155,7 @@ func copyVideoRankToDO(dto *v1.VideoRankDTO) *VideoRank {
 		return nil
 	}
 	return &VideoRank{
-		RankNum:         int(dto.RankNum),
+
 		PeriodType:      dto.PeriodType,
 		RankDate:        dto.RankDate,
 		StartDate:       dto.StartDate,
@@ -196,8 +196,8 @@ func CopyVideoRankToDTO(do *VideoRank) *v1.VideoRankDTO {
 		return nil
 	}
 	return &v1.VideoRankDTO{
-		Id:              int64(do.ID),
-		RankNum:         int32(do.RankNum),
+		Id: int64(do.ID),
+
 		PeriodType:      do.PeriodType,
 		RankDate:        do.RankDate,
 		StartDate:       do.StartDate,

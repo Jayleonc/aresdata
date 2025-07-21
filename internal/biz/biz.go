@@ -9,5 +9,8 @@ import (
 var ProviderSet = wire.NewSet(
 	NewVideoRankUsecase,
 	NewFetcherUsecase,
+	NewVideoUsecase,
+	NewProductUsecase,
+	NewBloggerUsecase,
 	fetcher.NewFeiguaFetcher,
 )

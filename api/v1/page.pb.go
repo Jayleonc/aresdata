@@ -21,6 +21,59 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+// SortOrder 定义了排序方向
+type SortOrder int32
+
+const (
+	// 默认值，服务器可以自行决定或不排序
+	SortOrder_UNSORTED SortOrder = 0
+	// 升序
+	SortOrder_ASC SortOrder = 1
+	// 降序
+	SortOrder_DESC SortOrder = 2
+)
+
+// Enum value maps for SortOrder.
+var (
+	SortOrder_name = map[int32]string{
+		0: "UNSORTED",
+		1: "ASC",
+		2: "DESC",
+	}
+	SortOrder_value = map[string]int32{
+		"UNSORTED": 0,
+		"ASC":      1,
+		"DESC":     2,
+	}
+)
+
+func (x SortOrder) Enum() *SortOrder {
+	p := new(SortOrder)
+	*p = x
+	return p
+}
+
+func (x SortOrder) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (SortOrder) Descriptor() protoreflect.EnumDescriptor {
+	return file_v1_page_proto_enumTypes[0].Descriptor()
+}
+
+func (SortOrder) Type() protoreflect.EnumType {
+	return &file_v1_page_proto_enumTypes[0]
+}
+
+func (x SortOrder) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use SortOrder.Descriptor instead.
+func (SortOrder) EnumDescriptor() ([]byte, []int) {
+	return file_v1_page_proto_rawDescGZIP(), []int{0}
+}
+
 // 分页请求
 type PageRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
@@ -128,7 +181,11 @@ const file_v1_page_proto_rawDesc = "" +
 	"\x04page\x18\x01 \x01(\x03R\x04page\x12\x12\n" +
 	"\x04size\x18\x02 \x01(\x03R\x04size\"$\n" +
 	"\fPageResponse\x12\x14\n" +
-	"\x05total\x18\x01 \x01(\x03R\x05totalB\x14Z\x12aresdata/api/v1;v1b\x06proto3"
+	"\x05total\x18\x01 \x01(\x03R\x05total*,\n" +
+	"\tSortOrder\x12\f\n" +
+	"\bUNSORTED\x10\x00\x12\a\n" +
+	"\x03ASC\x10\x01\x12\b\n" +
+	"\x04DESC\x10\x02B\x14Z\x12aresdata/api/v1;v1b\x06proto3"
 
 var (
 	file_v1_page_proto_rawDescOnce sync.Once
@@ -142,10 +199,12 @@ func file_v1_page_proto_rawDescGZIP() []byte {
 	return file_v1_page_proto_rawDescData
 }
 
+var file_v1_page_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
 var file_v1_page_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
 var file_v1_page_proto_goTypes = []any{
-	(*PageRequest)(nil),  // 0: PageRequest
-	(*PageResponse)(nil), // 1: PageResponse
+	(SortOrder)(0),       // 0: SortOrder
+	(*PageRequest)(nil),  // 1: PageRequest
+	(*PageResponse)(nil), // 2: PageResponse
 }
 var file_v1_page_proto_depIdxs = []int32{
 	0, // [0:0] is the sub-list for method output_type
@@ -165,13 +224,14 @@ func file_v1_page_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_v1_page_proto_rawDesc), len(file_v1_page_proto_rawDesc)),
-			NumEnums:      0,
+			NumEnums:      1,
 			NumMessages:   2,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
 		GoTypes:           file_v1_page_proto_goTypes,
 		DependencyIndexes: file_v1_page_proto_depIdxs,
+		EnumInfos:         file_v1_page_proto_enumTypes,
 		MessageInfos:      file_v1_page_proto_msgTypes,
 	}.Build()
 	File_v1_page_proto = out.File
