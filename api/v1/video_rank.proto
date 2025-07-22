@@ -2,7 +2,7 @@ syntax = "proto3";
 
 option go_package = "aresdata/api/v1;v1";
 
-import "google/protobuf/timestamp.proto";
+
 import "google/api/annotations.proto";
 import "v1/page.proto";
 
@@ -60,7 +60,7 @@ message VideoRankDTO {
 	    // 主键ID
     int64 id = 1;
 	    // 创建时间
-    google.protobuf.Timestamp created_at = 2;
+    string created_at = 2;
 
 	// 榜单核心
 	
@@ -81,7 +81,7 @@ message VideoRankDTO {
 	    // 视频描述
     string aweme_desc = 10;
 	    // 视频发布时间
-    google.protobuf.Timestamp aweme_pub_time = 11;
+    string aweme_pub_time = 11;
 	    // 视频分享链接
     string aweme_share_url = 12;
 	    // 视频时长字符串
@@ -128,7 +128,7 @@ message VideoRankDTO {
 	// 榜单统计
 	    // 销量字符串
     string sales_count_str = 31;
-	    // 累计销量字符串
+	    // 销售额字符串
     string total_sales_str = 32;
 	    // 点赞增量字符串
     string like_count_inc_str = 33;

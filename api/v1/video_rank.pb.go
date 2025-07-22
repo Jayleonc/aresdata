@@ -10,7 +10,6 @@ import (
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
-	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
@@ -254,7 +253,7 @@ type VideoRankDTO struct {
 	// 主键ID
 	Id int64 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
 	// 创建时间
-	CreatedAt *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	CreatedAt string `protobuf:"bytes,2,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	// 榜单周期类型，如日榜、周榜
 	PeriodType string `protobuf:"bytes,4,opt,name=period_type,json=periodType,proto3" json:"period_type,omitempty"`
 	// 榜单日期
@@ -271,7 +270,7 @@ type VideoRankDTO struct {
 	// 视频描述
 	AwemeDesc string `protobuf:"bytes,10,opt,name=aweme_desc,json=awemeDesc,proto3" json:"aweme_desc,omitempty"`
 	// 视频发布时间
-	AwemePubTime *timestamppb.Timestamp `protobuf:"bytes,11,opt,name=aweme_pub_time,json=awemePubTime,proto3" json:"aweme_pub_time,omitempty"`
+	AwemePubTime string `protobuf:"bytes,11,opt,name=aweme_pub_time,json=awemePubTime,proto3" json:"aweme_pub_time,omitempty"`
 	// 视频分享链接
 	AwemeShareUrl string `protobuf:"bytes,12,opt,name=aweme_share_url,json=awemeShareUrl,proto3" json:"aweme_share_url,omitempty"`
 	// 视频时长字符串
@@ -365,11 +364,11 @@ func (x *VideoRankDTO) GetId() int64 {
 	return 0
 }
 
-func (x *VideoRankDTO) GetCreatedAt() *timestamppb.Timestamp {
+func (x *VideoRankDTO) GetCreatedAt() string {
 	if x != nil {
 		return x.CreatedAt
 	}
-	return nil
+	return ""
 }
 
 func (x *VideoRankDTO) GetPeriodType() string {
@@ -421,11 +420,11 @@ func (x *VideoRankDTO) GetAwemeDesc() string {
 	return ""
 }
 
-func (x *VideoRankDTO) GetAwemePubTime() *timestamppb.Timestamp {
+func (x *VideoRankDTO) GetAwemePubTime() string {
 	if x != nil {
 		return x.AwemePubTime
 	}
-	return nil
+	return ""
 }
 
 func (x *VideoRankDTO) GetAwemeShareUrl() string {
@@ -600,7 +599,7 @@ var File_v1_video_rank_proto protoreflect.FileDescriptor
 
 const file_v1_video_rank_proto_rawDesc = "" +
 	"\n" +
-	"\x13v1/video_rank.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1cgoogle/api/annotations.proto\x1a\rv1/page.proto\"l\n" +
+	"\x13v1/video_rank.proto\x1a\x1cgoogle/api/annotations.proto\x1a\rv1/page.proto\"l\n" +
 	"\x15VideoRankQueryRequest\x12\x19\n" +
 	"\baweme_id\x18\x01 \x01(\tR\aawemeId\x12\x1b\n" +
 	"\trank_type\x18\x02 \x01(\tR\brankType\x12\x1b\n" +
@@ -613,11 +612,11 @@ const file_v1_video_rank_proto_rawDesc = "" +
 	"\trank_date\x18\x03 \x01(\tR\brankDate\"_\n" +
 	"\x15ListVideoRankResponse\x12!\n" +
 	"\x04page\x18\x01 \x01(\v2\r.PageResponseR\x04page\x12#\n" +
-	"\x05ranks\x18\x02 \x03(\v2\r.VideoRankDTOR\x05ranks\"\xde\t\n" +
+	"\x05ranks\x18\x02 \x03(\v2\r.VideoRankDTOR\x05ranks\"\xa6\t\n" +
 	"\fVideoRankDTO\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\x03R\x02id\x129\n" +
+	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x1d\n" +
 	"\n" +
-	"created_at\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x12\x1f\n" +
+	"created_at\x18\x02 \x01(\tR\tcreatedAt\x12\x1f\n" +
 	"\vperiod_type\x18\x04 \x01(\tR\n" +
 	"periodType\x12\x1b\n" +
 	"\trank_date\x18\x05 \x01(\tR\brankDate\x12\x1d\n" +
@@ -628,8 +627,8 @@ const file_v1_video_rank_proto_rawDesc = "" +
 	"\x0faweme_cover_url\x18\t \x01(\tR\rawemeCoverUrl\x12\x1d\n" +
 	"\n" +
 	"aweme_desc\x18\n" +
-	" \x01(\tR\tawemeDesc\x12@\n" +
-	"\x0eaweme_pub_time\x18\v \x01(\v2\x1a.google.protobuf.TimestampR\fawemePubTime\x12&\n" +
+	" \x01(\tR\tawemeDesc\x12$\n" +
+	"\x0eaweme_pub_time\x18\v \x01(\tR\fawemePubTime\x12&\n" +
 	"\x0faweme_share_url\x18\f \x01(\tR\rawemeShareUrl\x12!\n" +
 	"\fduration_str\x18\r \x01(\tR\vdurationStr\x12&\n" +
 	"\x0faweme_score_str\x18\x0e \x01(\tR\rawemeScoreStr\x12\x19\n" +
@@ -685,24 +684,21 @@ var file_v1_video_rank_proto_goTypes = []any{
 	(*VideoRankDTO)(nil),           // 4: VideoRankDTO
 	(*PageRequest)(nil),            // 5: PageRequest
 	(*PageResponse)(nil),           // 6: PageResponse
-	(*timestamppb.Timestamp)(nil),  // 7: google.protobuf.Timestamp
 }
 var file_v1_video_rank_proto_depIdxs = []int32{
 	4, // 0: VideoRankQueryResponse.rank:type_name -> VideoRankDTO
 	5, // 1: ListVideoRankRequest.page:type_name -> PageRequest
 	6, // 2: ListVideoRankResponse.page:type_name -> PageResponse
 	4, // 3: ListVideoRankResponse.ranks:type_name -> VideoRankDTO
-	7, // 4: VideoRankDTO.created_at:type_name -> google.protobuf.Timestamp
-	7, // 5: VideoRankDTO.aweme_pub_time:type_name -> google.protobuf.Timestamp
-	0, // 6: VideoRank.GetVideoRank:input_type -> VideoRankQueryRequest
-	2, // 7: VideoRank.ListVideoRank:input_type -> ListVideoRankRequest
-	1, // 8: VideoRank.GetVideoRank:output_type -> VideoRankQueryResponse
-	3, // 9: VideoRank.ListVideoRank:output_type -> ListVideoRankResponse
-	8, // [8:10] is the sub-list for method output_type
-	6, // [6:8] is the sub-list for method input_type
-	6, // [6:6] is the sub-list for extension type_name
-	6, // [6:6] is the sub-list for extension extendee
-	0, // [0:6] is the sub-list for field type_name
+	0, // 4: VideoRank.GetVideoRank:input_type -> VideoRankQueryRequest
+	2, // 5: VideoRank.ListVideoRank:input_type -> ListVideoRankRequest
+	1, // 6: VideoRank.GetVideoRank:output_type -> VideoRankQueryResponse
+	3, // 7: VideoRank.ListVideoRank:output_type -> ListVideoRankResponse
+	6, // [6:8] is the sub-list for method output_type
+	4, // [4:6] is the sub-list for method input_type
+	4, // [4:4] is the sub-list for extension type_name
+	4, // [4:4] is the sub-list for extension extendee
+	0, // [0:4] is the sub-list for field type_name
 }
 
 func init() { file_v1_video_rank_proto_init() }

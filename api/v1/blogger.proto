@@ -1,7 +1,7 @@
 syntax = "proto3";
 
 import "google/api/annotations.proto";
-import "google/protobuf/timestamp.proto";
+
 import "v1/page.proto";
 
 option go_package = "aresdata/api/v1;v1";
@@ -29,9 +29,9 @@ message BloggerDTO {
 	// 博主ID
 	int64 blogger_id = 1;
 	// 创建时间
-	google.protobuf.Timestamp created_at = 2;
+	string created_at = 2;
 	// 更新时间
-	google.protobuf.Timestamp updated_at = 3;
+	string updated_at = 3;
 	// 昵称
 	string blogger_uid = 4;
 	// 头像URL

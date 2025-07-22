@@ -1,0 +1,83 @@
+syntax = "proto3";
+
+
+import "google/api/annotations.proto";
+import "v1/page.proto";
+
+package v1;
+
+option go_package = "aresdata/api/v1;v1";
+
+// VideoTrendService 提供视频趋势数据的查询服务
+service VideoTrendService {
+  // 分页查询视频趋势信息
+  rpc ListVideoTrends (ListVideoTrendsRequest) returns (ListVideoTrendsResponse) {
+    option (google.api.http) = {
+      post: "/v1/video_trends/list",
+      body: "*"
+    };
+  }
+}
+
+// 视频每日趋势数据 DTO
+message VideoTrendDTO {
+  int64 id = 1;
+  string created_at = 2;
+  string updated_at = 3;
+  // 视频ID
+  string aweme_id = 4;
+  // 日期代码
+  int32 date_code = 5;
+
+  // 指标（同时包含原始数值和字符串）
+  int64 like_count = 6;
+  string like_count_str = 7;
+  int64 share_count = 8;
+  string share_count_str = 9;
+  int64 comment_count = 10;
+  string comment_count_str = 11;
+  int64 collect_count = 12;
+  string collect_count_str = 13;
+  double interaction_rate = 14;
+  string interaction_rate_str = 15;
+  int64 inc_like_count = 16;
+  string inc_like_count_str = 17;
+  int64 inc_share_count = 18;
+  string inc_share_count_str = 19;
+  int64 inc_comment_count = 20;
+  string inc_comment_count_str = 21;
+  int64 inc_collect_count = 22;
+  string inc_collect_count_str = 23;
+  int64 sales_count = 24;
+  string sales_count_str = 25;
+  double sales_gmv = 26;
+  string sales_gmv_str = 27;
+  int64 fans = 28;
+  string fans_str = 29;
+  int64 inc_sales_count = 30;
+  string inc_sales_count_str = 31;
+  double inc_sales_gmv = 32;
+  string inc_sales_gmv_str = 33;
+  int64 inc_fans = 34;
+  string inc_fans_str = 35;
+  double gpm = 36;
+  string gpm_str = 37;
+  // 列表时间 
+  string list_time_str = 38;
+  // 时间戳
+  int64 time_stamp = 39;
+}
+
+// 分页查询视频趋势请求
+message ListVideoTrendsRequest {
+  PageRequest page = 1;
+  string aweme_id = 2; // 指定视频ID
+  string start_date = 3; // 起始日期，格式 "20060102"
+  string end_date = 4;   // 结束日期，格式 "20060102"
+}
+
+// 分页查询视频趋势响应
+message ListVideoTrendsResponse {
+  PageResponse page = 1;
+  repeated VideoTrendDTO trends = 2;
+}

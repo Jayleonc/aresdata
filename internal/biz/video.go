@@ -37,3 +37,8 @@ func (uc *VideoUsecase) ListVideos(ctx context.Context, page, size int, query, s
 	}
 	return dtos, total, nil
 }
+
+// GetVideosNeedingTrendUpdate 获取需要更新趋势的视频列表
+func (uc *VideoUsecase) GetVideosNeedingTrendUpdate(ctx context.Context, limit int) ([]*data.VideoForTrend, error) {
+	return uc.repo.FindVideosNeedingTrendUpdate(ctx, limit)
+}

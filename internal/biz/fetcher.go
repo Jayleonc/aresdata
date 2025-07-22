@@ -7,7 +7,6 @@ import (
 	"context"
 	"fmt"
 	"github.com/go-kratos/kratos/v2/log"
-	"google.golang.org/protobuf/types/known/timestamppb"
 	"time"
 )
 
@@ -38,7 +37,7 @@ func (uc *FetcherUsecase) FetchAndStoreVideoRank(ctx context.Context, period, da
 				DataType:       "video_rank_" + period,
 				EntityId:       fmt.Sprintf("%s_%s", period, datecode),
 				Status:         -1, // 标记为错误
-				FetchedAt:      timestamppb.New(time.Now()),
+				FetchedAt:      time.Now().Format(time.RFC3339),
 				Date:           datecode,
 				RawContent:     err.Error(), // 内容字段记录错误信息
 				RequestMethod:  meta.Method,
@@ -60,7 +59,7 @@ func (uc *FetcherUsecase) FetchAndStoreVideoRank(ctx context.Context, period, da
 		RawContent:     rawContent,
 		EntityId:       fmt.Sprintf("%s_%s", period, datecode),
 		Status:         0, // 初始状态为 未处理
-		FetchedAt:      timestamppb.New(time.Now()),
+		FetchedAt:      time.Now().Format(time.RFC3339),
 		Date:           datecode,
 		RequestMethod:  meta.Method,
 		RequestUrl:     meta.URL,
@@ -73,18 +72,18 @@ func (uc *FetcherUsecase) FetchAndStoreVideoRank(ctx context.Context, period, da
 }
 
 // FetchAndStoreVideoTrend 采集并存储视频趋势数据
-func (uc *FetcherUsecase) FetchAndStoreVideoTrend(ctx context.Context, awemeID string) (*v1.SourceData, error) {
+func (uc *FetcherUsecase) FetchAndStoreVideoTrend(ctx context.Context, awemeID string, awemePubTime time.Time) (*v1.SourceData, error) {
 	// 接收 body 和 meta
-	rawContent, meta, err := uc.fetcher.FetchVideoTrend(ctx, awemeID)
+	rawContent, meta, err := uc.fetcher.FetchVideoTrend(ctx, awemeID, awemePubTime)
 	if err != nil {
 		// 即便请求失败，我们也应该记录这次失败的请求，以便排查和重试
 		if meta != nil {
 			failedSourceData := &v1.SourceData{
 				ProviderName:   "feigua",
-				DataType:       "video_trend_daily",
+				DataType:       "video_trend",
 				EntityId:       awemeID,
 				Status:         -1, // 标记为错误
-				FetchedAt:      timestamppb.New(time.Now()),
+				FetchedAt:      time.Now().Format(time.DateTime),
 				RawContent:     err.Error(), // 内容字段记录错误信息
 				RequestMethod:  meta.Method,
 				RequestUrl:     meta.URL,
@@ -99,11 +98,12 @@ func (uc *FetcherUsecase) FetchAndStoreVideoTrend(ctx context.Context, awemeID s
 	// 成功则记录完整信息
 	sourceData := &v1.SourceData{
 		ProviderName:   "feigua",
-		DataType:       "video_trend_daily",
+		DataType:       "video_trend",
 		RawContent:     rawContent,
 		EntityId:       awemeID,
+		Date:           time.Now().Format("20060102"),
 		Status:         0,
-		FetchedAt:      timestamppb.New(time.Now()),
+		FetchedAt:      time.Now().Format(time.DateTime),
 		RequestMethod:  meta.Method,
 		RequestUrl:     meta.URL,
 		RequestParams:  meta.Params,
@@ -126,7 +126,7 @@ func (uc *FetcherUsecase) FetchAndStoreVideoSummary(ctx context.Context, awemeID
 				DataType:       dataType,
 				EntityId:       awemeID,
 				Status:         -1, // 标记为错误
-				FetchedAt:      timestamppb.New(time.Now()),
+				FetchedAt:      time.Now().Format(time.RFC3339),
 				Date:           dateCode,
 				RawContent:     err.Error(), // 内容字段记录错误信息
 				RequestMethod:  meta.Method,
@@ -149,7 +149,7 @@ func (uc *FetcherUsecase) FetchAndStoreVideoSummary(ctx context.Context, awemeID
 		RawContent:     rawContent,
 		EntityId:       awemeID,
 		Status:         0, // 初始状态为 未处理
-		FetchedAt:      timestamppb.New(time.Now()),
+		FetchedAt:      time.Now().Format(time.RFC3339),
 		Date:           dateCode,
 		RequestMethod:  meta.Method,
 		RequestUrl:     meta.URL,

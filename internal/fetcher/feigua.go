@@ -77,6 +77,9 @@ func (f *FeiguaFetcher) FetchVideoRank(ctx context.Context, period, datecode str
 	req.Header.Set("Referer", f.conf.Feigua.BaseUrl+"/app/")
 	req.Header.Set("Origin", f.conf.Feigua.BaseUrl)
 	req.Header.Set("Accept", "application/json, text/plain, */*")
+	req.Header.Set("Accept-Language", "zh-CN,zh;q=0.9,en;q=0.8")
+	req.Header.Set("Accept-Encoding", "gzip, deflate")
+	req.Header.Set("Connection", "keep-alive")
 
 	// 捕获元数据
 	headersJson, _ := json.Marshal(req.Header)
@@ -106,19 +109,16 @@ func (f *FeiguaFetcher) FetchVideoRank(ctx context.Context, period, datecode str
 }
 
 // FetchVideoTrend 采集单个视频的趋势数据
-func (f *FeiguaFetcher) FetchVideoTrend(ctx context.Context, awemeID string) (string, *RequestMetadata, error) {
+func (f *FeiguaFetcher) FetchVideoTrend(ctx context.Context, awemeID string, awemePubTime time.Time) (string, *RequestMetadata, error) {
 	apiEndpoint := f.conf.Feigua.BaseUrl + "/api/v3/aweme/detail/detail/trends"
 
-	params := url.Values{}
-	params.Set("awemeId", awemeID)
-	// 根据你的截图和URL，我们固定查询近7天的数据
-	params.Set("period", "7")
-	// dateCode 可以用当天的日期
-	params.Set("dateCode", time.Now().Format("20060102"))
-	params.Set("type", "1") // 这个 type=1 暂时固定
-	params.Set("_", fmt.Sprintf("%d", time.Now().UnixMilli()))
-
-	fullUrl := apiEndpoint + "?" + params.Encode()
+	// 手动拼接参数顺序，确保 awemeId, dateCode, period, type, _
+	query := fmt.Sprintf("awemeId=%s&dateCode=%s&period=30&type=1&_=%d",
+		awemeID,
+		awemePubTime.Format("20060102"),
+		time.Now().UnixMilli(),
+	)
+	fullUrl := apiEndpoint + "?" + query
 	f.log.WithContext(ctx).Infof("Requesting Trend URL: %s", fullUrl)
 
 	req, err := http.NewRequestWithContext(ctx, "GET", fullUrl, nil)
@@ -128,13 +128,17 @@ func (f *FeiguaFetcher) FetchVideoTrend(ctx context.Context, awemeID string) (st
 
 	req.Header.Set("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36")
 	req.Header.Set("Cookie", f.conf.Feigua.Cookie)
+	req.Header.Set("Referer", f.conf.Feigua.BaseUrl+"/app/")
+	req.Header.Set("Origin", f.conf.Feigua.BaseUrl)
+	req.Header.Set("Accept", "application/json, text/plain, */*")
+	req.Header.Set("Accept-Language", "zh-CN,zh;q=0.9,en;q=0.8")
+	req.Header.Set("Accept-Encoding", "gzip, deflate")
 
-	// 捕获元数据
 	headersJson, _ := json.Marshal(req.Header)
 	meta := &RequestMetadata{
 		Method:  "GET",
-		URL:     apiEndpoint, // 只存基础URL，完整URL可由参数重构
-		Params:  params.Encode(),
+		URL:     apiEndpoint,
+		Params:  query,
 		Headers: string(headersJson),
 	}
 

@@ -17,6 +17,7 @@ func NewHTTPServer(c *conf.Server,
 	videoService *service.VideoServiceService,
 	productService *service.ProductServiceService,
 	blogger *service.BloggerServiceService,
+	videoTrend *service.VideoTrendServiceService,
 	logger log.Logger) *http.Server {
 	var opts = []http.ServerOption{
 		http.Middleware(
@@ -49,6 +50,7 @@ func NewHTTPServer(c *conf.Server,
 	v1.RegisterVideoServiceHTTPServer(srv, videoService)
 	v1.RegisterProductServiceHTTPServer(srv, productService)
 	v1.RegisterBloggerServiceHTTPServer(srv, blogger)
+	v1.RegisterVideoTrendServiceHTTPServer(srv, videoTrend)
 
 	// 添加 OpenAPI 文档路由
 	srv.Handle("/openapi.yaml", OpenAPIHandler("./openapi.yaml"))

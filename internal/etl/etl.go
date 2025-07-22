@@ -29,9 +29,9 @@ type ETLUsecase struct {
 // 修改构造函数签名，注入新的 processor
 func NewETLUsecase(sdRepo data.SourceDataRepo, vr *VideoRankProcessor, vt *VideoTrendProcessor, vs *VideoSummaryProcessor) *ETLUsecase {
 	processors := map[string]Processor{
-		"video_rank_day":    vr,
-		"video_trend_daily": vt,
-		"video_summary":     vs,
+		"video_rank_day": vr,
+		"video_trend":    vt,
+		"video_summary":  vs,
 		// 扩展...
 	}
 

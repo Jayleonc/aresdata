@@ -9,7 +9,6 @@ package v1
 import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
-	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
@@ -29,7 +28,7 @@ type SourceData struct {
 	ProviderName  string                 `protobuf:"bytes,2,opt,name=provider_name,json=providerName,proto3" json:"provider_name,omitempty"`
 	DataType      string                 `protobuf:"bytes,3,opt,name=data_type,json=dataType,proto3" json:"data_type,omitempty"`
 	RawContent    string                 `protobuf:"bytes,4,opt,name=raw_content,json=rawContent,proto3" json:"raw_content,omitempty"` // 存储原始的JSON字符串
-	FetchedAt     *timestamppb.Timestamp `protobuf:"bytes,5,opt,name=fetched_at,json=fetchedAt,proto3" json:"fetched_at,omitempty"`
+	FetchedAt     string                 `protobuf:"bytes,5,opt,name=fetched_at,json=fetchedAt,proto3" json:"fetched_at,omitempty"`
 	Status        int32                  `protobuf:"varint,6,opt,name=status,proto3" json:"status,omitempty"`
 	EntityId      string                 `protobuf:"bytes,7,opt,name=entity_id,json=entityId,proto3" json:"entity_id,omitempty"`
 	Date          string                 `protobuf:"bytes,8,opt,name=date,proto3" json:"date,omitempty"`
@@ -102,11 +101,11 @@ func (x *SourceData) GetRawContent() string {
 	return ""
 }
 
-func (x *SourceData) GetFetchedAt() *timestamppb.Timestamp {
+func (x *SourceData) GetFetchedAt() string {
 	if x != nil {
 		return x.FetchedAt
 	}
-	return nil
+	return ""
 }
 
 func (x *SourceData) GetStatus() int32 {
@@ -176,16 +175,16 @@ var File_v1_source_data_proto protoreflect.FileDescriptor
 
 const file_v1_source_data_proto_rawDesc = "" +
 	"\n" +
-	"\x14v1/source_data.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xdc\x03\n" +
+	"\x14v1/source_data.proto\"\xc0\x03\n" +
 	"\n" +
 	"SourceData\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12#\n" +
 	"\rprovider_name\x18\x02 \x01(\tR\fproviderName\x12\x1b\n" +
 	"\tdata_type\x18\x03 \x01(\tR\bdataType\x12\x1f\n" +
 	"\vraw_content\x18\x04 \x01(\tR\n" +
-	"rawContent\x129\n" +
+	"rawContent\x12\x1d\n" +
 	"\n" +
-	"fetched_at\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampR\tfetchedAt\x12\x16\n" +
+	"fetched_at\x18\x05 \x01(\tR\tfetchedAt\x12\x16\n" +
 	"\x06status\x18\x06 \x01(\x05R\x06status\x12\x1b\n" +
 	"\tentity_id\x18\a \x01(\tR\bentityId\x12\x12\n" +
 	"\x04date\x18\b \x01(\tR\x04date\x12%\n" +
@@ -212,16 +211,14 @@ func file_v1_source_data_proto_rawDescGZIP() []byte {
 
 var file_v1_source_data_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
 var file_v1_source_data_proto_goTypes = []any{
-	(*SourceData)(nil),            // 0: SourceData
-	(*timestamppb.Timestamp)(nil), // 1: google.protobuf.Timestamp
+	(*SourceData)(nil), // 0: SourceData
 }
 var file_v1_source_data_proto_depIdxs = []int32{
-	1, // 0: SourceData.fetched_at:type_name -> google.protobuf.Timestamp
-	1, // [1:1] is the sub-list for method output_type
-	1, // [1:1] is the sub-list for method input_type
-	1, // [1:1] is the sub-list for extension type_name
-	1, // [1:1] is the sub-list for extension extendee
-	0, // [0:1] is the sub-list for field type_name
+	0, // [0:0] is the sub-list for method output_type
+	0, // [0:0] is the sub-list for method input_type
+	0, // [0:0] is the sub-list for extension type_name
+	0, // [0:0] is the sub-list for extension extendee
+	0, // [0:0] is the sub-list for field type_name
 }
 
 func init() { file_v1_source_data_proto_init() }

@@ -3,7 +3,6 @@ package data
 import (
 	v1 "aresdata/api/v1"
 	"context"
-	"google.golang.org/protobuf/types/known/timestamppb"
 	"time"
 
 	"github.com/go-kratos/kratos/v2/log"
@@ -28,7 +27,7 @@ type SourceData struct {
 	DataType      string    `gorm:"type:varchar(255);not null;index"`
 	EntityId      string    `gorm:"type:varchar(255);index"`  // 可选，关联的主要实体ID，不同的数据类型可能有不同的ID
 	Status        int32     `gorm:"not null;default:0;index"` // 0: unprocessed, 1: processed, -1: error
-	FetchedAt     time.Time `gorm:"autoCreateTime"`
+	FetchedAt     time.Time `gorm:"autoCreateTime;type:timestamp"`
 	Date          string    `gorm:"type:varchar(10);not null;index"`
 	RawContent    string    `gorm:"type:text"`
 	ProcessingLog string    `gorm:"type:text"`          // 存储ETL处理过程中的错误信息
@@ -61,9 +60,6 @@ func NewSourceDataRepo(data *Data, logger log.Logger) SourceDataRepo {
 // Save 实现了biz层的接口，负责将数据写入数据库
 func copySourceDataToDO(s *v1.SourceData) *SourceData {
 	var fetchedAt time.Time
-	if s.FetchedAt != nil {
-		fetchedAt = s.FetchedAt.AsTime()
-	}
 	return &SourceData{
 		ID:             s.Id,
 		ProviderName:   s.ProviderName,
@@ -89,7 +85,7 @@ func copySourceDataToDTO(s *SourceData) *v1.SourceData {
 		DataType:       s.DataType,
 		EntityId:       s.EntityId,
 		Status:         s.Status,
-		FetchedAt:      timestamppb.New(s.FetchedAt),
+		FetchedAt:      s.FetchedAt.Format(time.DateTime),
 		Date:           s.Date,
 		RawContent:     s.RawContent,
 		ProcessingLog:  s.ProcessingLog,

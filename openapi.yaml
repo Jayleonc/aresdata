@@ -133,6 +133,25 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/.ListVideoRankResponse'
+    /v1/video_trends/list:
+        post:
+            tags:
+                - VideoTrendService
+            description: 分页查询视频趋势信息
+            operationId: VideoTrendService_ListVideoTrends
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/v1.ListVideoTrendsRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/v1.ListVideoTrendsResponse'
     /v1/videos/detail:
         post:
             tags:
@@ -182,11 +201,9 @@ components:
                 createdAt:
                     type: string
                     description: 创建时间
-                    format: date-time
                 updatedAt:
                     type: string
                     description: 更新时间
-                    format: date-time
                 bloggerUid:
                     type: string
                     description: 昵称
@@ -356,11 +373,9 @@ components:
                 createdAt:
                     type: string
                     description: 创建时间
-                    format: date-time
                 updatedAt:
                     type: string
                     description: 更新时间
-                    format: date-time
                 goodsTitle:
                     type: string
                     description: 商品标题
@@ -412,11 +427,9 @@ components:
                 createdAt:
                     type: string
                     description: 创建时间
-                    format: date-time
                 updatedAt:
                     type: string
                     description: 更新时间
-                    format: date-time
                 awemeDesc:
                     type: string
                     description: 视频描述
@@ -426,7 +439,6 @@ components:
                 awemePubTime:
                     type: string
                     description: 视频发布时间
-                    format: date-time
                 bloggerId:
                     type: string
                     description: 博主ID
@@ -473,7 +485,6 @@ components:
                 summaryUpdatedAt:
                     type: string
                     description: 汇总更新时间
-                    format: date-time
             description: 视频维度数据 DTO
         .VideoQueryRequest:
             type: object
@@ -496,7 +507,6 @@ components:
                 createdAt:
                     type: string
                     description: 创建时间
-                    format: date-time
                 periodType:
                     type: string
                     description: 榜单周期类型，如日榜、周榜
@@ -523,7 +533,6 @@ components:
                 awemePubTime:
                     type: string
                     description: 视频发布时间
-                    format: date-time
                 awemeShareUrl:
                     type: string
                     description: 视频分享链接
@@ -624,6 +633,120 @@ components:
                 rank:
                     $ref: '#/components/schemas/.VideoRankDTO'
             description: VideoRank 查询响应
+        v1.ListVideoTrendsRequest:
+            type: object
+            properties:
+                page:
+                    $ref: '#/components/schemas/.PageRequest'
+                awemeId:
+                    type: string
+                startDate:
+                    type: string
+                endDate:
+                    type: string
+            description: 分页查询视频趋势请求
+        v1.ListVideoTrendsResponse:
+            type: object
+            properties:
+                page:
+                    $ref: '#/components/schemas/.PageResponse'
+                trends:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/v1.VideoTrendDTO'
+            description: 分页查询视频趋势响应
+        v1.VideoTrendDTO:
+            type: object
+            properties:
+                id:
+                    type: string
+                createdAt:
+                    type: string
+                updatedAt:
+                    type: string
+                awemeId:
+                    type: string
+                    description: 视频ID
+                dateCode:
+                    type: integer
+                    description: 日期代码
+                    format: int32
+                likeCount:
+                    type: string
+                    description: 指标（同时包含原始数值和字符串）
+                likeCountStr:
+                    type: string
+                shareCount:
+                    type: string
+                shareCountStr:
+                    type: string
+                commentCount:
+                    type: string
+                commentCountStr:
+                    type: string
+                collectCount:
+                    type: string
+                collectCountStr:
+                    type: string
+                interactionRate:
+                    type: number
+                    format: double
+                interactionRateStr:
+                    type: string
+                incLikeCount:
+                    type: string
+                incLikeCountStr:
+                    type: string
+                incShareCount:
+                    type: string
+                incShareCountStr:
+                    type: string
+                incCommentCount:
+                    type: string
+                incCommentCountStr:
+                    type: string
+                incCollectCount:
+                    type: string
+                incCollectCountStr:
+                    type: string
+                salesCount:
+                    type: string
+                salesCountStr:
+                    type: string
+                salesGmv:
+                    type: number
+                    format: double
+                salesGmvStr:
+                    type: string
+                fans:
+                    type: string
+                fansStr:
+                    type: string
+                incSalesCount:
+                    type: string
+                incSalesCountStr:
+                    type: string
+                incSalesGmv:
+                    type: number
+                    format: double
+                incSalesGmvStr:
+                    type: string
+                incFans:
+                    type: string
+                incFansStr:
+                    type: string
+                gpm:
+                    type: number
+                    format: double
+                gpmStr:
+                    type: string
+                listTimeStr:
+                    type: string
+                    description: 列表时间
+                timeStamp:
+                    type: string
+                    description: 时间戳
+            description: 视频每日趋势数据 DTO
 tags:
     - name: BloggerService
       description: BloggerService 提供视频博主维度数据的查询服务
@@ -634,3 +757,5 @@ tags:
       description: VideoRank 提供榜单视频排名查询服务
     - name: VideoService
       description: VideoService 提供视频维度数据的查询服务
+    - name: VideoTrendService
+      description: VideoTrendService 提供视频趋势数据的查询服务

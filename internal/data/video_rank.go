@@ -2,10 +2,9 @@ package data
 
 import (
 	v1 "aresdata/api/v1"
+	"aresdata/pkg/utils"
 	"context"
 	"time"
-
-	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 // VideoRankRepo defines the interface for batch creation of VideoRank records.
@@ -24,7 +23,7 @@ type VideoRankRepo interface {
 // VideoRank is the GORM model for storing video ranking data.
 type VideoRank struct {
 	ID        uint      `gorm:"primaryKey"`
-	CreatedAt time.Time `gorm:"autoCreateTime"`
+	CreatedAt time.Time `gorm:"autoCreateTime;type:timestamp"`
 
 	// 榜单核心
 
@@ -37,7 +36,7 @@ type VideoRank struct {
 	AwemeId       string    `gorm:"column:aweme_id;size:1024;not null"`
 	AwemeCoverUrl string    `gorm:"column:aweme_cover_url;size:1024;not null;default:''"`
 	AwemeDesc     string    `gorm:"column:aweme_desc;type:text;not null;default:''"`
-	AwemePubTime  time.Time `gorm:"column:aweme_pub_time"`
+	AwemePubTime  time.Time `gorm:"column:aweme_pub_time;type:timestamp"`
 	AwemeShareUrl string    `gorm:"column:aweme_share_url;size:1024;not null;default:''"`
 	DurationStr   string    `gorm:"column:duration_str;size:1024;not null;default:''"`
 	AwemeScoreStr string    `gorm:"column:aweme_score_str;size:1024;not null;default:''"`
@@ -74,7 +73,6 @@ type VideoRank struct {
 
 // videoRankRepo implements VideoRankRepo using GORM.
 
-// GetDistinctAwemeIDsByDate 获取指定日期之后上过榜的、不重复的视频ID
 func (r *videoRankRepo) GetDistinctAwemeIDsByDate(ctx context.Context, sinceDate string) ([]string, error) {
 	var awemeIDs []string
 	err := r.db.WithContext(ctx).
@@ -163,7 +161,7 @@ func copyVideoRankToDO(dto *v1.VideoRankDTO) *VideoRank {
 		AwemeId:         dto.AwemeId,
 		AwemeCoverUrl:   dto.AwemeCoverUrl,
 		AwemeDesc:       dto.AwemeDesc,
-		AwemePubTime:    dto.AwemePubTime.AsTime(),
+		AwemePubTime:    utils.ParseTimeRFC3339(dto.AwemePubTime),
 		AwemeShareUrl:   dto.AwemeShareUrl,
 		DurationStr:     dto.DurationStr,
 		AwemeScoreStr:   dto.AwemeScoreStr,
@@ -205,7 +203,7 @@ func CopyVideoRankToDTO(do *VideoRank) *v1.VideoRankDTO {
 		AwemeId:         do.AwemeId,
 		AwemeCoverUrl:   do.AwemeCoverUrl,
 		AwemeDesc:       do.AwemeDesc,
-		AwemePubTime:    timestamppb.New(do.AwemePubTime),
+		AwemePubTime:    do.AwemePubTime.Format(time.RFC3339),
 		AwemeShareUrl:   do.AwemeShareUrl,
 		DurationStr:     do.DurationStr,
 		AwemeScoreStr:   do.AwemeScoreStr,

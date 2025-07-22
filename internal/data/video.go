@@ -6,21 +6,19 @@ import (
 	"time"
 
 	"gorm.io/gorm/clause"
-
-	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 // Video 视频维度表
 type Video struct {
 	AwemeId   string    `gorm:"primaryKey;size:1024"`
-	CreatedAt time.Time `gorm:"autoCreateTime"`
-	UpdatedAt time.Time `gorm:"autoUpdateTime"`
+	CreatedAt time.Time `gorm:"autoCreateTime;type:timestamp"`
+	UpdatedAt time.Time `gorm:"autoUpdateTime;type:timestamp"`
 
 	// --- 基础信息 ---
-	AwemeDesc     string `gorm:"type:text"`
-	AwemeCoverUrl string `gorm:"size:1024"`
-	AwemePubTime  time.Time
-	BloggerId     int64 `gorm:"index"`
+	AwemeDesc     string    `gorm:"type:text"`
+	AwemeCoverUrl string    `gorm:"size:1024"`
+	AwemePubTime  time.Time `gorm:"type:timestamp"`
+	BloggerId     int64     `gorm:"index"`
 
 	// --- 新增：总览数据 (来自总量接口的原始字符串) ---
 	PlayCountStr       string `gorm:"size:255"`
@@ -45,7 +43,8 @@ type Video struct {
 	InteractionJSON     string `gorm:"type:text"`
 	AudienceProfileJSON string `gorm:"type:text"`
 
-	SummaryUpdatedAt *time.Time `gorm:"index;comment:总览数据更新时间"`
+	SummaryUpdatedAt *time.Time `gorm:"index;comment:总览数据更新时间;type:timestamp"`
+	TrendUpdatedAt   *time.Time `gorm:"index;comment:趋势数据更新时间;type:timestamp"` // 新增此行
 }
 
 func (Video) TableName() string {
@@ -58,7 +57,9 @@ type VideoRepo interface {
 	FindVideosNeedingSummaryUpdate(ctx context.Context, limit int) ([]*VideoForSummary, error)
 	ListPage(ctx context.Context, page, size int, query, sortBy string, sortOrder v1.SortOrder) ([]*Video, int64, error)
 	Get(ctx context.Context, awemeId string) (*Video, error)
-	FindRecentActiveAwemeIds(ctx context.Context, days int) ([]string, error) // 新增此行
+	FindRecentActiveAwemeIds(ctx context.Context, days int) ([]string, error)              // 新增此行
+	FindVideosNeedingTrendUpdate(ctx context.Context, limit int) ([]*VideoForTrend, error) // 新增：筛选需要更新趋势采集的视频
+	UpdateTrendTimestamp(ctx context.Context, awemeId string) error                        // 新增：趋势更新时间戳回写方法
 }
 
 type videoRepo struct {
@@ -135,11 +136,11 @@ func CopyVideoToDTO(v *Video) *v1.VideoDTO {
 	}
 	dto := &v1.VideoDTO{
 		AwemeId:            v.AwemeId,
-		CreatedAt:          timestamppb.New(v.CreatedAt),
-		UpdatedAt:          timestamppb.New(v.UpdatedAt),
+		CreatedAt:          v.CreatedAt.Format(time.RFC3339),
+		UpdatedAt:          v.UpdatedAt.Format(time.RFC3339),
 		AwemeDesc:          v.AwemeDesc,
 		AwemeCoverUrl:      v.AwemeCoverUrl,
-		AwemePubTime:       timestamppb.New(v.AwemePubTime),
+		AwemePubTime:       v.AwemePubTime.Format(time.RFC3339),
 		BloggerId:          v.BloggerId,
 		PlayCountStr:       v.PlayCountStr,
 		LikeCountStr:       v.LikeCountStr,
@@ -156,9 +157,14 @@ func CopyVideoToDTO(v *Video) *v1.VideoDTO {
 		AwemeType:          v.AwemeType,
 	}
 	if v.SummaryUpdatedAt != nil {
-		dto.SummaryUpdatedAt = timestamppb.New(*v.SummaryUpdatedAt)
+		dto.SummaryUpdatedAt = v.SummaryUpdatedAt.Format(time.RFC3339)
 	}
 	return dto
+}
+
+func (r *videoRepo) UpdateTrendTimestamp(ctx context.Context, awemeId string) error {
+	now := time.Now()
+	return r.db.WithContext(ctx).Model(&Video{AwemeId: awemeId}).Update("trend_updated_at", &now).Error
 }
 
 func (r *videoRepo) Get(ctx context.Context, awemeId string) (*Video, error) {

@@ -10,7 +10,6 @@ import (
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
-	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
@@ -29,15 +28,15 @@ type VideoDTO struct {
 	// 主键ID
 	AwemeId string `protobuf:"bytes,1,opt,name=aweme_id,json=awemeId,proto3" json:"aweme_id,omitempty"`
 	// 创建时间
-	CreatedAt *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	CreatedAt string `protobuf:"bytes,2,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	// 更新时间
-	UpdatedAt *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	UpdatedAt string `protobuf:"bytes,3,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
 	// 视频描述
 	AwemeDesc string `protobuf:"bytes,4,opt,name=aweme_desc,json=awemeDesc,proto3" json:"aweme_desc,omitempty"`
 	// 视频封面URL
 	AwemeCoverUrl string `protobuf:"bytes,5,opt,name=aweme_cover_url,json=awemeCoverUrl,proto3" json:"aweme_cover_url,omitempty"`
 	// 视频发布时间
-	AwemePubTime *timestamppb.Timestamp `protobuf:"bytes,6,opt,name=aweme_pub_time,json=awemePubTime,proto3" json:"aweme_pub_time,omitempty"`
+	AwemePubTime string `protobuf:"bytes,6,opt,name=aweme_pub_time,json=awemePubTime,proto3" json:"aweme_pub_time,omitempty"`
 	// 博主ID
 	BloggerId int64 `protobuf:"varint,7,opt,name=blogger_id,json=bloggerId,proto3" json:"blogger_id,omitempty"`
 	// 播放量字符串
@@ -67,7 +66,7 @@ type VideoDTO struct {
 	// 视频类型
 	AwemeType int32 `protobuf:"varint,20,opt,name=aweme_type,json=awemeType,proto3" json:"aweme_type,omitempty"`
 	// 汇总更新时间
-	SummaryUpdatedAt *timestamppb.Timestamp `protobuf:"bytes,21,opt,name=summary_updated_at,json=summaryUpdatedAt,proto3" json:"summary_updated_at,omitempty"`
+	SummaryUpdatedAt string `protobuf:"bytes,21,opt,name=summary_updated_at,json=summaryUpdatedAt,proto3" json:"summary_updated_at,omitempty"`
 	unknownFields    protoimpl.UnknownFields
 	sizeCache        protoimpl.SizeCache
 }
@@ -109,18 +108,18 @@ func (x *VideoDTO) GetAwemeId() string {
 	return ""
 }
 
-func (x *VideoDTO) GetCreatedAt() *timestamppb.Timestamp {
+func (x *VideoDTO) GetCreatedAt() string {
 	if x != nil {
 		return x.CreatedAt
 	}
-	return nil
+	return ""
 }
 
-func (x *VideoDTO) GetUpdatedAt() *timestamppb.Timestamp {
+func (x *VideoDTO) GetUpdatedAt() string {
 	if x != nil {
 		return x.UpdatedAt
 	}
-	return nil
+	return ""
 }
 
 func (x *VideoDTO) GetAwemeDesc() string {
@@ -137,11 +136,11 @@ func (x *VideoDTO) GetAwemeCoverUrl() string {
 	return ""
 }
 
-func (x *VideoDTO) GetAwemePubTime() *timestamppb.Timestamp {
+func (x *VideoDTO) GetAwemePubTime() string {
 	if x != nil {
 		return x.AwemePubTime
 	}
-	return nil
+	return ""
 }
 
 func (x *VideoDTO) GetBloggerId() int64 {
@@ -242,11 +241,11 @@ func (x *VideoDTO) GetAwemeType() int32 {
 	return 0
 }
 
-func (x *VideoDTO) GetSummaryUpdatedAt() *timestamppb.Timestamp {
+func (x *VideoDTO) GetSummaryUpdatedAt() string {
 	if x != nil {
 		return x.SummaryUpdatedAt
 	}
-	return nil
+	return ""
 }
 
 // 分页查询视频请求
@@ -469,17 +468,17 @@ var File_v1_video_proto protoreflect.FileDescriptor
 
 const file_v1_video_proto_rawDesc = "" +
 	"\n" +
-	"\x0ev1/video.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\rv1/page.proto\"\x87\a\n" +
+	"\x0ev1/video.proto\x1a\x1cgoogle/api/annotations.proto\x1a\rv1/page.proto\"\x97\x06\n" +
 	"\bVideoDTO\x12\x19\n" +
-	"\baweme_id\x18\x01 \x01(\tR\aawemeId\x129\n" +
+	"\baweme_id\x18\x01 \x01(\tR\aawemeId\x12\x1d\n" +
 	"\n" +
-	"created_at\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x129\n" +
+	"created_at\x18\x02 \x01(\tR\tcreatedAt\x12\x1d\n" +
 	"\n" +
-	"updated_at\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\x12\x1d\n" +
+	"updated_at\x18\x03 \x01(\tR\tupdatedAt\x12\x1d\n" +
 	"\n" +
 	"aweme_desc\x18\x04 \x01(\tR\tawemeDesc\x12&\n" +
-	"\x0faweme_cover_url\x18\x05 \x01(\tR\rawemeCoverUrl\x12@\n" +
-	"\x0eaweme_pub_time\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\fawemePubTime\x12\x1d\n" +
+	"\x0faweme_cover_url\x18\x05 \x01(\tR\rawemeCoverUrl\x12$\n" +
+	"\x0eaweme_pub_time\x18\x06 \x01(\tR\fawemePubTime\x12\x1d\n" +
 	"\n" +
 	"blogger_id\x18\a \x01(\x03R\tbloggerId\x12$\n" +
 	"\x0eplay_count_str\x18\b \x01(\tR\fplayCountStr\x12$\n" +
@@ -496,8 +495,8 @@ const file_v1_video_proto_rawDesc = "" +
 	"\x0fgoods_count_str\x18\x12 \x01(\tR\rgoodsCountStr\x12\x17\n" +
 	"\agpm_str\x18\x13 \x01(\tR\x06gpmStr\x12\x1d\n" +
 	"\n" +
-	"aweme_type\x18\x14 \x01(\x05R\tawemeType\x12H\n" +
-	"\x12summary_updated_at\x18\x15 \x01(\v2\x1a.google.protobuf.TimestampR\x10summaryUpdatedAt\"\x8f\x01\n" +
+	"aweme_type\x18\x14 \x01(\x05R\tawemeType\x12,\n" +
+	"\x12summary_updated_at\x18\x15 \x01(\tR\x10summaryUpdatedAt\"\x8f\x01\n" +
 	"\x11ListVideosRequest\x12 \n" +
 	"\x04page\x18\x01 \x01(\v2\f.PageRequestR\x04page\x12\x14\n" +
 	"\x05query\x18\x02 \x01(\tR\x05query\x12\x17\n" +
@@ -531,35 +530,30 @@ func file_v1_video_proto_rawDescGZIP() []byte {
 
 var file_v1_video_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
 var file_v1_video_proto_goTypes = []any{
-	(*VideoDTO)(nil),              // 0: VideoDTO
-	(*ListVideosRequest)(nil),     // 1: ListVideosRequest
-	(*ListVideosResponse)(nil),    // 2: ListVideosResponse
-	(*VideoQueryRequest)(nil),     // 3: VideoQueryRequest
-	(*VideoQueryResponse)(nil),    // 4: VideoQueryResponse
-	(*timestamppb.Timestamp)(nil), // 5: google.protobuf.Timestamp
-	(*PageRequest)(nil),           // 6: PageRequest
-	(SortOrder)(0),                // 7: SortOrder
-	(*PageResponse)(nil),          // 8: PageResponse
+	(*VideoDTO)(nil),           // 0: VideoDTO
+	(*ListVideosRequest)(nil),  // 1: ListVideosRequest
+	(*ListVideosResponse)(nil), // 2: ListVideosResponse
+	(*VideoQueryRequest)(nil),  // 3: VideoQueryRequest
+	(*VideoQueryResponse)(nil), // 4: VideoQueryResponse
+	(*PageRequest)(nil),        // 5: PageRequest
+	(SortOrder)(0),             // 6: SortOrder
+	(*PageResponse)(nil),       // 7: PageResponse
 }
 var file_v1_video_proto_depIdxs = []int32{
-	5,  // 0: VideoDTO.created_at:type_name -> google.protobuf.Timestamp
-	5,  // 1: VideoDTO.updated_at:type_name -> google.protobuf.Timestamp
-	5,  // 2: VideoDTO.aweme_pub_time:type_name -> google.protobuf.Timestamp
-	5,  // 3: VideoDTO.summary_updated_at:type_name -> google.protobuf.Timestamp
-	6,  // 4: ListVideosRequest.page:type_name -> PageRequest
-	7,  // 5: ListVideosRequest.sort_order:type_name -> SortOrder
-	8,  // 6: ListVideosResponse.page:type_name -> PageResponse
-	0,  // 7: ListVideosResponse.videos:type_name -> VideoDTO
-	0,  // 8: VideoQueryResponse.video:type_name -> VideoDTO
-	1,  // 9: VideoService.ListVideos:input_type -> ListVideosRequest
-	3,  // 10: VideoService.GetVideo:input_type -> VideoQueryRequest
-	2,  // 11: VideoService.ListVideos:output_type -> ListVideosResponse
-	4,  // 12: VideoService.GetVideo:output_type -> VideoQueryResponse
-	11, // [11:13] is the sub-list for method output_type
-	9,  // [9:11] is the sub-list for method input_type
-	9,  // [9:9] is the sub-list for extension type_name
-	9,  // [9:9] is the sub-list for extension extendee
-	0,  // [0:9] is the sub-list for field type_name
+	5, // 0: ListVideosRequest.page:type_name -> PageRequest
+	6, // 1: ListVideosRequest.sort_order:type_name -> SortOrder
+	7, // 2: ListVideosResponse.page:type_name -> PageResponse
+	0, // 3: ListVideosResponse.videos:type_name -> VideoDTO
+	0, // 4: VideoQueryResponse.video:type_name -> VideoDTO
+	1, // 5: VideoService.ListVideos:input_type -> ListVideosRequest
+	3, // 6: VideoService.GetVideo:input_type -> VideoQueryRequest
+	2, // 7: VideoService.ListVideos:output_type -> ListVideosResponse
+	4, // 8: VideoService.GetVideo:output_type -> VideoQueryResponse
+	7, // [7:9] is the sub-list for method output_type
+	5, // [5:7] is the sub-list for method input_type
+	5, // [5:5] is the sub-list for extension type_name
+	5, // [5:5] is the sub-list for extension extendee
+	0, // [0:5] is the sub-list for field type_name
 }
 
 func init() { file_v1_video_proto_init() }

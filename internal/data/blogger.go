@@ -3,7 +3,6 @@ package data
 import (
 	v1 "aresdata/api/v1"
 	"context"
-	"google.golang.org/protobuf/types/known/timestamppb"
 	"gorm.io/gorm/clause"
 	"time"
 )
@@ -12,8 +11,8 @@ import (
 // Blogger 博主维度表
 type Blogger struct {
 	BloggerId      int64     `gorm:"primaryKey"`
-	CreatedAt      time.Time `gorm:"autoCreateTime"`
-	UpdatedAt      time.Time `gorm:"autoUpdateTime"`
+	CreatedAt      time.Time `gorm:"autoCreateTime;type:timestamp"`
+	UpdatedAt      time.Time `gorm:"autoUpdateTime;type:timestamp"`
 	BloggerUid     string    `gorm:"size:255;index"`
 	BloggerName    string    `gorm:"size:255"`
 	BloggerAvatar  string    `gorm:"size:1024"`
@@ -105,8 +104,8 @@ func CopyBloggerToDTO(b *Blogger) *v1.BloggerDTO {
 	}
 	return &v1.BloggerDTO{
 		BloggerId:      b.BloggerId,
-		CreatedAt:      timestamppb.New(b.CreatedAt),
-		UpdatedAt:      timestamppb.New(b.UpdatedAt),
+		CreatedAt:      b.CreatedAt.Format(time.RFC3339),
+		UpdatedAt:      b.UpdatedAt.Format(time.RFC3339),
 		BloggerUid:     b.BloggerUid,
 		BloggerName:    b.BloggerName,
 		BloggerAvatar:  b.BloggerAvatar,

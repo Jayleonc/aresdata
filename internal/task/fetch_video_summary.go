@@ -27,7 +27,7 @@ func (t *FetchVideoSummaryTask) Name() string {
 }
 
 func (t *FetchVideoSummaryTask) Run(ctx context.Context, args ...string) error {
-	videos, err := t.videoRepo.FindVideosNeedingSummaryUpdate(ctx, 1)
+	videos, err := t.videoRepo.FindVideosNeedingSummaryUpdate(ctx, 150)
 	if err != nil {
 		t.log.WithContext(ctx).Errorf("获取待更新视频列表失败: %v", err)
 		return err

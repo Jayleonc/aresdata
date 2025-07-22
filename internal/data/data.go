@@ -18,7 +18,7 @@ var ProviderSet = wire.NewSet(
 	NewSourceDataRepo,
 	NewVideoRankRepo,
 	NewVideoRepo,
-	NewVideoTrendStatRepo,
+	NewVideoTrendRepo,
 	NewProductRepo,
 	NewBloggerRepo,
 )
@@ -42,15 +42,25 @@ func NewData(c *conf.Data, redisClient redis.Cmdable, logger log.Logger) (*Data,
 	if err != nil {
 		return nil, nil, err
 	}
+
+	sqlDB, err := db.DB()
+	if err != nil {
+		return nil, nil, err
+	}
+	// Set the timezone for the current session.
+	_, err = sqlDB.Exec("SET TIME ZONE 'Asia/Shanghai'")
+	if err != nil {
+		return nil, nil, err
+	}
+
 	helper := log.NewHelper(logger)
 	cleanup := func() {
 		helper.Info("closing the data resources")
-		sqlDB, _ := db.DB()
 		sqlDB.Close()
 		_ = redisClient.(*redis.Client).Close()
 	}
 
-	db.AutoMigrate(&SourceData{}, &VideoRank{}, &Video{}, &VideoTrendStat{}, &Product{}, &Blogger{})
+	db.AutoMigrate(&SourceData{}, &VideoRank{}, &Video{}, &VideoTrend{}, &Product{}, &Blogger{})
 
 	return &Data{
 		db:     db,

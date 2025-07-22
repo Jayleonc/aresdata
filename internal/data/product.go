@@ -6,14 +6,13 @@ import (
 	"time"
 
 	"aresdata/api/v1"
-	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 // Product 商品维度表
 type Product struct {
 	GoodsId   string    `gorm:"primaryKey;size:1024"`
-	CreatedAt time.Time `gorm:"autoCreateTime"`
-	UpdatedAt time.Time `gorm:"autoUpdateTime"`
+	CreatedAt time.Time `gorm:"autoCreateTime;type:timestamp"`
+	UpdatedAt time.Time `gorm:"autoUpdateTime;type:timestamp"`
 
 	GoodsTitle      string  `gorm:"type:text"`
 	GoodsCoverUrl   string  `gorm:"size:1024"`
@@ -112,8 +111,8 @@ func CopyProductToDTO(p *Product) *v1.ProductDTO {
 	}
 	return &v1.ProductDTO{
 		GoodsId:         p.GoodsId,
-		CreatedAt:       timestamppb.New(p.CreatedAt),
-		UpdatedAt:       timestamppb.New(p.UpdatedAt),
+		CreatedAt:       p.CreatedAt.Format(time.RFC3339),
+		UpdatedAt:       p.UpdatedAt.Format(time.RFC3339),
 		GoodsTitle:      p.GoodsTitle,
 		GoodsCoverUrl:   p.GoodsCoverUrl,
 		GoodsPriceRange: p.GoodsPriceRange,

@@ -2,69 +2,60 @@ package task
 
 import (
 	"aresdata/internal/biz"
-	"aresdata/internal/data"
 	"context"
 	"github.com/go-kratos/kratos/v2/log"
-	"sync"
 )
 
 // FetchVideoTrendTask 负责每日拉取视频趋势数据的任务
 type FetchVideoTrendTask struct {
-	videoRepo  data.VideoRepo
-	fetcherBiz *biz.FetcherUsecase
-	log        *log.Helper
+	fetcherUC *biz.FetcherUsecase
+	videoUC   *biz.VideoUsecase // 依赖 VideoUsecase
+	log       *log.Helper
 }
 
 // NewFetchVideoTrendTask 构造任务实例
-func NewFetchVideoTrendTask(repo data.VideoRepo, biz *biz.FetcherUsecase, logger log.Logger) *FetchVideoTrendTask {
+func NewFetchVideoTrendTask(fetcherUC *biz.FetcherUsecase, videoUC *biz.VideoUsecase, logger log.Logger) *FetchVideoTrendTask {
 	return &FetchVideoTrendTask{
-		videoRepo:  repo,
-		fetcherBiz: biz,
-		log:        log.NewHelper(logger),
+		fetcherUC: fetcherUC,
+		videoUC:   videoUC,
+		log:       log.NewHelper(log.With(logger, "module", "task/fetch-video-trend")),
 	}
 }
 
 func (t *FetchVideoTrendTask) Name() string {
-	return ProcessVideoTrend
+	return FetchVideoTrend // 修正：返回正确的任务名称
 }
 
 // Run 任务的执行入口
-func (t *FetchVideoTrendTask) Run() {
+func (t *FetchVideoTrendTask) Run(ctx context.Context, args ...string) error {
 	t.log.Info("开始执行 [每日视频趋势] 拉取任务...")
-	ctx := context.Background()
+	limit := 150 // 每次任务最多处理100个视频
 
-	// 1. 获取过去30天内活跃的视频ID
-	awemeIds, err := t.videoRepo.FindRecentActiveAwemeIds(ctx, 30)
+	// 1. 通过 VideoUsecase 获取需要更新趋势的视频列表
+	videos, err := t.videoUC.GetVideosNeedingTrendUpdate(ctx, limit)
 	if err != nil {
-		t.log.Errorf("获取活跃视频ID失败: %v", err)
-		return
-	}
-	t.log.Infof("发现 %d 个活跃视频需要同步趋势数据", len(awemeIds))
-
-	// 2. 并发拉取和保存数据 (可以设置并发度)
-	var wg sync.WaitGroup
-	concurrency := 5 // 同时处理5个视频
-	idChannel := make(chan string, len(awemeIds))
-
-	for _, id := range awemeIds {
-		idChannel <- id
-	}
-	close(idChannel)
-
-	for i := 0; i < concurrency; i++ {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			for awemeId := range idChannel {
-				t.log.Infof("正在处理视频: %s", awemeId)
-				err := t.fetcherBiz.FetchAndSaveVideoTrend(ctx, awemeId)
-				if err != nil {
-					t.log.Errorf("处理视频 %s 失败: %v", awemeId, err)
-				}
-			}
-		}()
+		t.log.Errorf("获取待更新趋势视频列表失败: %v", err)
+		return err
 	}
 
-	wg.Wait()
-	t.log.Info("[每日视频趋势] 拉取任务执行完毕。")
+	if len(videos) == 0 {
+		t.log.Info("没有需要更新趋势的视频。")
+		return nil
+	}
+
+	t.log.Infof("发现 %d 个视频需要同步趋势数据", len(videos))
+
+	// 2. 遍历ID，通过 FetcherUsecase 下发采集任务
+	for _, v := range videos {
+		// 修正：将视频的发布时间传递给 Usecase
+		_, err := t.fetcherUC.FetchAndStoreVideoTrend(ctx, v.AwemeId, v.AwemePubTime)
+		if err != nil {
+			t.log.Errorf("为视频 %s 下发趋势采集任务失败: %v", v.AwemeId, err)
+		} else {
+			t.log.Infof("已成功为视频 %s 下发趋势采集任务", v.AwemeId)
+		}
+	}
+
+	t.log.Info("[每日视频趋势] 所有采集任务已下发完毕。")
+	return nil
 }

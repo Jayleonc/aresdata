@@ -1,7 +1,7 @@
 syntax = "proto3";
 
 import "google/api/annotations.proto";
-import "google/protobuf/timestamp.proto";
+
 import "v1/page.proto";
 
 option go_package = "aresdata/api/v1;v1";
@@ -29,15 +29,15 @@ message VideoDTO {
 	// 主键ID
 	string aweme_id = 1;
 	// 创建时间
-	google.protobuf.Timestamp created_at = 2;
+	string created_at = 2;
 	// 更新时间
-	google.protobuf.Timestamp updated_at = 3;
+	string updated_at = 3;
 	// 视频描述
 	string aweme_desc = 4;
 	// 视频封面URL
 	string aweme_cover_url = 5;
 	// 视频发布时间
-	google.protobuf.Timestamp aweme_pub_time = 6;
+	string aweme_pub_time = 6;
 	// 博主ID
 	int64 blogger_id = 7;
 	// 播放量字符串
@@ -67,7 +67,7 @@ message VideoDTO {
 	// 视频类型
 	int32 aweme_type = 20;
 	// 汇总更新时间
-	google.protobuf.Timestamp summary_updated_at = 21;
+	string summary_updated_at = 21;
 }
 
 // 分页查询视频请求

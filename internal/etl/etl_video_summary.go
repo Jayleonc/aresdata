@@ -3,6 +3,7 @@ package etl
 import (
 	v1 "aresdata/api/v1"
 	"aresdata/internal/data"
+	"aresdata/pkg/utils"
 
 	"context"
 	"encoding/json"
@@ -60,7 +61,7 @@ func (p *VideoSummaryProcessor) Process(ctx context.Context, rawData *v1.SourceD
 		DataType:       rawData.DataType,
 		EntityId:       rawData.EntityId,
 		Status:         rawData.Status,
-		FetchedAt:      rawData.FetchedAt.AsTime(),
+		FetchedAt:      utils.ParseTimeRFC3339(rawData.FetchedAt),
 		Date:           rawData.Date,
 		RawContent:     rawData.RawContent,
 		ProcessingLog:  rawData.ProcessingLog,

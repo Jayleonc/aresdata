@@ -10,7 +10,6 @@ import (
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
-	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
@@ -30,9 +29,9 @@ type BloggerDTO struct {
 	// 博主ID
 	BloggerId int64 `protobuf:"varint,1,opt,name=blogger_id,json=bloggerId,proto3" json:"blogger_id,omitempty"`
 	// 创建时间
-	CreatedAt *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	CreatedAt string `protobuf:"bytes,2,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	// 更新时间
-	UpdatedAt *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	UpdatedAt string `protobuf:"bytes,3,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
 	// 昵称
 	BloggerUid string `protobuf:"bytes,4,opt,name=blogger_uid,json=bloggerUid,proto3" json:"blogger_uid,omitempty"`
 	// 头像URL
@@ -84,18 +83,18 @@ func (x *BloggerDTO) GetBloggerId() int64 {
 	return 0
 }
 
-func (x *BloggerDTO) GetCreatedAt() *timestamppb.Timestamp {
+func (x *BloggerDTO) GetCreatedAt() string {
 	if x != nil {
 		return x.CreatedAt
 	}
-	return nil
+	return ""
 }
 
-func (x *BloggerDTO) GetUpdatedAt() *timestamppb.Timestamp {
+func (x *BloggerDTO) GetUpdatedAt() string {
 	if x != nil {
 		return x.UpdatedAt
 	}
-	return nil
+	return ""
 }
 
 func (x *BloggerDTO) GetBloggerUid() string {
@@ -352,15 +351,15 @@ var File_v1_blogger_proto protoreflect.FileDescriptor
 
 const file_v1_blogger_proto_rawDesc = "" +
 	"\n" +
-	"\x10v1/blogger.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\rv1/page.proto\"\xd7\x02\n" +
+	"\x10v1/blogger.proto\x1a\x1cgoogle/api/annotations.proto\x1a\rv1/page.proto\"\x9f\x02\n" +
 	"\n" +
 	"BloggerDTO\x12\x1d\n" +
 	"\n" +
-	"blogger_id\x18\x01 \x01(\x03R\tbloggerId\x129\n" +
+	"blogger_id\x18\x01 \x01(\x03R\tbloggerId\x12\x1d\n" +
 	"\n" +
-	"created_at\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x129\n" +
+	"created_at\x18\x02 \x01(\tR\tcreatedAt\x12\x1d\n" +
 	"\n" +
-	"updated_at\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\x12\x1f\n" +
+	"updated_at\x18\x03 \x01(\tR\tupdatedAt\x12\x1f\n" +
 	"\vblogger_uid\x18\x04 \x01(\tR\n" +
 	"bloggerUid\x12!\n" +
 	"\fblogger_name\x18\x05 \x01(\tR\vbloggerName\x12%\n" +
@@ -402,33 +401,30 @@ func file_v1_blogger_proto_rawDescGZIP() []byte {
 
 var file_v1_blogger_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
 var file_v1_blogger_proto_goTypes = []any{
-	(*BloggerDTO)(nil),            // 0: BloggerDTO
-	(*ListBloggersRequest)(nil),   // 1: ListBloggersRequest
-	(*ListBloggersResponse)(nil),  // 2: ListBloggersResponse
-	(*BloggerQueryRequest)(nil),   // 3: BloggerQueryRequest
-	(*BloggerQueryResponse)(nil),  // 4: BloggerQueryResponse
-	(*timestamppb.Timestamp)(nil), // 5: google.protobuf.Timestamp
-	(*PageRequest)(nil),           // 6: PageRequest
-	(SortOrder)(0),                // 7: SortOrder
-	(*PageResponse)(nil),          // 8: PageResponse
+	(*BloggerDTO)(nil),           // 0: BloggerDTO
+	(*ListBloggersRequest)(nil),  // 1: ListBloggersRequest
+	(*ListBloggersResponse)(nil), // 2: ListBloggersResponse
+	(*BloggerQueryRequest)(nil),  // 3: BloggerQueryRequest
+	(*BloggerQueryResponse)(nil), // 4: BloggerQueryResponse
+	(*PageRequest)(nil),          // 5: PageRequest
+	(SortOrder)(0),               // 6: SortOrder
+	(*PageResponse)(nil),         // 7: PageResponse
 }
 var file_v1_blogger_proto_depIdxs = []int32{
-	5, // 0: BloggerDTO.created_at:type_name -> google.protobuf.Timestamp
-	5, // 1: BloggerDTO.updated_at:type_name -> google.protobuf.Timestamp
-	6, // 2: ListBloggersRequest.page:type_name -> PageRequest
-	7, // 3: ListBloggersRequest.sort_order:type_name -> SortOrder
-	8, // 4: ListBloggersResponse.page:type_name -> PageResponse
-	0, // 5: ListBloggersResponse.bloggers:type_name -> BloggerDTO
-	0, // 6: BloggerQueryResponse.blogger:type_name -> BloggerDTO
-	3, // 7: BloggerService.GetBlogger:input_type -> BloggerQueryRequest
-	1, // 8: BloggerService.ListBloggers:input_type -> ListBloggersRequest
-	4, // 9: BloggerService.GetBlogger:output_type -> BloggerQueryResponse
-	2, // 10: BloggerService.ListBloggers:output_type -> ListBloggersResponse
-	9, // [9:11] is the sub-list for method output_type
-	7, // [7:9] is the sub-list for method input_type
-	7, // [7:7] is the sub-list for extension type_name
-	7, // [7:7] is the sub-list for extension extendee
-	0, // [0:7] is the sub-list for field type_name
+	5, // 0: ListBloggersRequest.page:type_name -> PageRequest
+	6, // 1: ListBloggersRequest.sort_order:type_name -> SortOrder
+	7, // 2: ListBloggersResponse.page:type_name -> PageResponse
+	0, // 3: ListBloggersResponse.bloggers:type_name -> BloggerDTO
+	0, // 4: BloggerQueryResponse.blogger:type_name -> BloggerDTO
+	3, // 5: BloggerService.GetBlogger:input_type -> BloggerQueryRequest
+	1, // 6: BloggerService.ListBloggers:input_type -> ListBloggersRequest
+	4, // 7: BloggerService.GetBlogger:output_type -> BloggerQueryResponse
+	2, // 8: BloggerService.ListBloggers:output_type -> ListBloggersResponse
+	7, // [7:9] is the sub-list for method output_type
+	5, // [5:7] is the sub-list for method input_type
+	5, // [5:5] is the sub-list for extension type_name
+	5, // [5:5] is the sub-list for extension extendee
+	0, // [0:5] is the sub-list for field type_name
 }
 
 func init() { file_v1_blogger_proto_init() }

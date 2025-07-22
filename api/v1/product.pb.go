@@ -10,7 +10,6 @@ import (
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
-	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
@@ -29,9 +28,9 @@ type ProductDTO struct {
 	// 商品 ID
 	GoodsId string `protobuf:"bytes,1,opt,name=goods_id,json=goodsId,proto3" json:"goods_id,omitempty"`
 	// 创建时间
-	CreatedAt *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	CreatedAt string `protobuf:"bytes,2,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	// 更新时间
-	UpdatedAt *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	UpdatedAt string `protobuf:"bytes,3,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
 	// 商品标题
 	GoodsTitle string `protobuf:"bytes,4,opt,name=goods_title,json=goodsTitle,proto3" json:"goods_title,omitempty"`
 	// 商品封面 URL
@@ -91,18 +90,18 @@ func (x *ProductDTO) GetGoodsId() string {
 	return ""
 }
 
-func (x *ProductDTO) GetCreatedAt() *timestamppb.Timestamp {
+func (x *ProductDTO) GetCreatedAt() string {
 	if x != nil {
 		return x.CreatedAt
 	}
-	return nil
+	return ""
 }
 
-func (x *ProductDTO) GetUpdatedAt() *timestamppb.Timestamp {
+func (x *ProductDTO) GetUpdatedAt() string {
 	if x != nil {
 		return x.UpdatedAt
 	}
-	return nil
+	return ""
 }
 
 func (x *ProductDTO) GetGoodsTitle() string {
@@ -389,14 +388,14 @@ var File_v1_product_proto protoreflect.FileDescriptor
 
 const file_v1_product_proto_rawDesc = "" +
 	"\n" +
-	"\x10v1/product.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\rv1/page.proto\"\xde\x03\n" +
+	"\x10v1/product.proto\x1a\x1cgoogle/api/annotations.proto\x1a\rv1/page.proto\"\xa6\x03\n" +
 	"\n" +
 	"ProductDTO\x12\x19\n" +
-	"\bgoods_id\x18\x01 \x01(\tR\agoodsId\x129\n" +
+	"\bgoods_id\x18\x01 \x01(\tR\agoodsId\x12\x1d\n" +
 	"\n" +
-	"created_at\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x129\n" +
+	"created_at\x18\x02 \x01(\tR\tcreatedAt\x12\x1d\n" +
 	"\n" +
-	"updated_at\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\x12\x1f\n" +
+	"updated_at\x18\x03 \x01(\tR\tupdatedAt\x12\x1f\n" +
 	"\vgoods_title\x18\x04 \x01(\tR\n" +
 	"goodsTitle\x12&\n" +
 	"\x0fgoods_cover_url\x18\x05 \x01(\tR\rgoodsCoverUrl\x12*\n" +
@@ -443,33 +442,30 @@ func file_v1_product_proto_rawDescGZIP() []byte {
 
 var file_v1_product_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
 var file_v1_product_proto_goTypes = []any{
-	(*ProductDTO)(nil),            // 0: ProductDTO
-	(*ListProductsRequest)(nil),   // 1: ListProductsRequest
-	(*ListProductsResponse)(nil),  // 2: ListProductsResponse
-	(*ProductQueryRequest)(nil),   // 3: ProductQueryRequest
-	(*ProductQueryResponse)(nil),  // 4: ProductQueryResponse
-	(*timestamppb.Timestamp)(nil), // 5: google.protobuf.Timestamp
-	(*PageRequest)(nil),           // 6: PageRequest
-	(SortOrder)(0),                // 7: SortOrder
-	(*PageResponse)(nil),          // 8: PageResponse
+	(*ProductDTO)(nil),           // 0: ProductDTO
+	(*ListProductsRequest)(nil),  // 1: ListProductsRequest
+	(*ListProductsResponse)(nil), // 2: ListProductsResponse
+	(*ProductQueryRequest)(nil),  // 3: ProductQueryRequest
+	(*ProductQueryResponse)(nil), // 4: ProductQueryResponse
+	(*PageRequest)(nil),          // 5: PageRequest
+	(SortOrder)(0),               // 6: SortOrder
+	(*PageResponse)(nil),         // 7: PageResponse
 }
 var file_v1_product_proto_depIdxs = []int32{
-	5, // 0: ProductDTO.created_at:type_name -> google.protobuf.Timestamp
-	5, // 1: ProductDTO.updated_at:type_name -> google.protobuf.Timestamp
-	6, // 2: ListProductsRequest.page:type_name -> PageRequest
-	7, // 3: ListProductsRequest.sort_order:type_name -> SortOrder
-	8, // 4: ListProductsResponse.page:type_name -> PageResponse
-	0, // 5: ListProductsResponse.products:type_name -> ProductDTO
-	0, // 6: ProductQueryResponse.product:type_name -> ProductDTO
-	1, // 7: ProductService.ListProducts:input_type -> ListProductsRequest
-	3, // 8: ProductService.GetProduct:input_type -> ProductQueryRequest
-	2, // 9: ProductService.ListProducts:output_type -> ListProductsResponse
-	4, // 10: ProductService.GetProduct:output_type -> ProductQueryResponse
-	9, // [9:11] is the sub-list for method output_type
-	7, // [7:9] is the sub-list for method input_type
-	7, // [7:7] is the sub-list for extension type_name
-	7, // [7:7] is the sub-list for extension extendee
-	0, // [0:7] is the sub-list for field type_name
+	5, // 0: ListProductsRequest.page:type_name -> PageRequest
+	6, // 1: ListProductsRequest.sort_order:type_name -> SortOrder
+	7, // 2: ListProductsResponse.page:type_name -> PageResponse
+	0, // 3: ListProductsResponse.products:type_name -> ProductDTO
+	0, // 4: ProductQueryResponse.product:type_name -> ProductDTO
+	1, // 5: ProductService.ListProducts:input_type -> ListProductsRequest
+	3, // 6: ProductService.GetProduct:input_type -> ProductQueryRequest
+	2, // 7: ProductService.ListProducts:output_type -> ListProductsResponse
+	4, // 8: ProductService.GetProduct:output_type -> ProductQueryResponse
+	7, // [7:9] is the sub-list for method output_type
+	5, // [5:7] is the sub-list for method input_type
+	5, // [5:5] is the sub-list for extension type_name
+	5, // [5:5] is the sub-list for extension extendee
+	0, // [0:5] is the sub-list for field type_name
 }
 
 func init() { file_v1_product_proto_init() }

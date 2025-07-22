@@ -12,5 +12,6 @@ var ProviderSet = wire.NewSet(
 	NewVideoUsecase,
 	NewProductUsecase,
 	NewBloggerUsecase,
+	NewVideoTrendUsecase, // 新增此行
 	fetcher.NewFeiguaFetcher,
 )

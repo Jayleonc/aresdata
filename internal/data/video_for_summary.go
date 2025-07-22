@@ -8,7 +8,7 @@ import (
 // VideoForSummary 定义了用于下钻采集的视频基础信息
 type VideoForSummary struct {
 	AwemeId      string
-	AwemePubTime time.Time
+	AwemePubTime time.Time `gorm:"type:timestamp"`
 }
 
 // FindVideosNeedingSummaryUpdate 查找需要更新总览数据的视频

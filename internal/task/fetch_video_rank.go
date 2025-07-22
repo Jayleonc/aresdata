@@ -26,7 +26,7 @@ func (t *FetchVideoRankTask) Name() string {
 
 func (t *FetchVideoRankTask) Run(ctx context.Context, args ...string) error {
 	// 默认采集昨天的日榜
-	datecode := time.Now().Add(-24 * time.Hour).Format("20060102")
+	datecode := time.Now().Add(-192 * time.Hour).Format("20060102")
 	t.log.WithContext(ctx).Infof("开始采集日榜数据，日期: %s", datecode)
 	_, err := t.uc.FetchAndStoreVideoRank(ctx, "day", datecode)
 	if err != nil {
