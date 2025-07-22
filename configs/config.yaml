@@ -14,9 +14,14 @@ data:
     password: "123456"
     read_timeout: 0.2s
     write_timeout: 0.2s
+#  feigua:
+#    baseUrl: "http://118.31.20.20:8080"
+#    cookie: "PHPSESSID=tdn5sqcnh1ub2413v9n6ffdpgt; body_collapsed=0"
+#    throttle_min_wait_ms: 15000  # 80秒
+#    throttle_max_wait_ms: 20000 # 90秒
   feigua:
-    baseUrl: "http://118.31.20.20:8080"
-    cookie: "PHPSESSID=tdn5sqcnh1ub2413v9n6ffdpgt; body_collapsed=0"
+    baseUrl: "http://118.178.59.83:8085"
+    cookie: "DYHHB_Session_2=9A47EBB238A79C4D2BF6CCCBDD3A7A44; il=E1DDF136C1919CE0E627EE1EAC4EA5E6; mu=; body_collapsed=0"
     throttle_min_wait_ms: 15000  # 80秒
     throttle_max_wait_ms: 20000 # 90秒
 

@@ -45,6 +45,10 @@ message ListVideoRankRequest {
 	string rank_type = 2;
 	// 排名日期，格式如"20250716"
 	string rank_date = 3;
+	// 排序字段，例如 "salesCountStr", "totalSalesStr"
+	string sort_by = 4;
+	// 排序方式，例如"asc", "desc"
+	string sort_order = 5;
 }
 
 // 分页查询响应
@@ -134,8 +138,13 @@ message VideoRankDTO {
     string like_count_inc_str = 33;
 	    // 播放增量字符串
     string play_count_inc_str = 34;
-
-	// 元数据
-	    // 原始元数据JSON
-    string raw_json = 35;
+	
+	// 销量范围低值
+	int64 sales_count_low = 35;
+	// 销量范围高值
+	int64 sales_count_high = 36;
+	// 销售额范围低值
+	int64 total_sales_low = 37;
+	// 销售额范围高值
+	int64 total_sales_high = 38;
 }

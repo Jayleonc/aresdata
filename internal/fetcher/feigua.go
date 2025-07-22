@@ -2,9 +2,12 @@ package fetcher
 
 import (
 	"aresdata/internal/conf"
+	"aresdata/pkg/utils"
+	"compress/gzip"
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -36,7 +39,6 @@ func NewFeiguaFetcher(c *conf.Data, logger log.Logger) *FeiguaFetcher {
 		c.Feigua.ThrottleMaxWaitMs,
 		logger,
 	)
-
 	return &FeiguaFetcher{
 		log:  log.NewHelper(log.With(logger, "module", "fetcher/feigua")),
 		conf: c,
@@ -48,13 +50,13 @@ func NewFeiguaFetcher(c *conf.Data, logger log.Logger) *FeiguaFetcher {
 }
 
 // FetchVideoRank 采集带货视频榜单
-func (f *FeiguaFetcher) FetchVideoRank(ctx context.Context, period, datecode string) (string, *RequestMetadata, error) {
+func (f *FeiguaFetcher) FetchVideoRank(ctx context.Context, period, datecode string, pageIndex, pageSize int) (string, *RequestMetadata, error) {
 	// 基于Python脚本构建请求
 	apiEndpoint := f.conf.Feigua.BaseUrl + "/api/v3/awemerank/sellGoodsAwemeRank"
 
 	params := url.Values{}
-	params.Set("pageIndex", "1")
-	params.Set("pageSize", "50")
+	params.Set("pageIndex", fmt.Sprintf("%d", pageIndex))
+	params.Set("pageSize", fmt.Sprintf("%d", pageSize))
 	params.Set("period", period)
 	params.Set("desc", "1")
 	params.Set("datecode", datecode)
@@ -72,14 +74,24 @@ func (f *FeiguaFetcher) FetchVideoRank(ctx context.Context, period, datecode str
 	}
 
 	// 设置 Headers
+	//req.Header.Set("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36")
+	//req.Header.Set("Cookie", f.conf.Feigua.Cookie)
+	//req.Header.Set("Referer", f.conf.Feigua.BaseUrl+"/app/")
+	//req.Header.Set("Origin", f.conf.Feigua.BaseUrl)
+	//req.Header.Set("Accept", "application/json, text/plain, */*")
+	//req.Header.Set("Accept-Language", "zh-CN,zh;q=0.9,en;q=0.8")
+	//req.Header.Set("Accept-Encoding", "gzip, deflate")
+	//req.Header.Set("Connection", "keep-alive")
+
 	req.Header.Set("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36")
 	req.Header.Set("Cookie", f.conf.Feigua.Cookie)
-	req.Header.Set("Referer", f.conf.Feigua.BaseUrl+"/app/")
-	req.Header.Set("Origin", f.conf.Feigua.BaseUrl)
+	//req.Header.Set("Referer", f.conf.Feigua.BaseUrl+"/app/")
+	//req.Header.Set("Origin", f.conf.Feigua.BaseUrl)
+	req.Header.Set("Host", "121.40.63.195:8085")
 	req.Header.Set("Accept", "application/json, text/plain, */*")
-	req.Header.Set("Accept-Language", "zh-CN,zh;q=0.9,en;q=0.8")
+	req.Header.Set("Accept-Language", "zh-CN,zh;q=0.9,en-US;q=0.8,en;q=0.7")
 	req.Header.Set("Accept-Encoding", "gzip, deflate")
-	req.Header.Set("Connection", "keep-alive")
+	req.Header.Set("Proxy-Connection", "keep-alive")
 
 	// 捕获元数据
 	headersJson, _ := json.Marshal(req.Header)
@@ -100,23 +112,53 @@ func (f *FeiguaFetcher) FetchVideoRank(ctx context.Context, period, datecode str
 		return "", meta, fmt.Errorf("bad status code: %d", resp.StatusCode)
 	}
 
-	body, err := ioutil.ReadAll(resp.Body)
+	// --- 新增：Gzip解压逻辑 ---
+	var reader io.ReadCloser
+	switch resp.Header.Get("Content-Encoding") {
+	case "gzip":
+		reader, err = gzip.NewReader(resp.Body)
+		if err != nil {
+			return "", meta, fmt.Errorf("failed to create gzip reader: %w", err)
+		}
+		defer reader.Close()
+	default:
+		// 如果没有压缩或者是不认识的压缩格式，直接使用原始响应体
+		reader = resp.Body
+	}
+	// --- 解压逻辑结束 ---
+
+	body, err := ioutil.ReadAll(reader) // 注意：这里从新的 reader 读取
 	if err != nil {
-		return "", meta, fmt.Errorf("failed to read response body: %w", err)
+		return "", meta, fmt.Errorf("failed to read response body for video trend: %w", err)
 	}
 
 	return string(body), meta, nil
+
 }
 
 // FetchVideoTrend 采集单个视频的趋势数据
 func (f *FeiguaFetcher) FetchVideoTrend(ctx context.Context, awemeID string, awemePubTime time.Time) (string, *RequestMetadata, error) {
 	apiEndpoint := f.conf.Feigua.BaseUrl + "/api/v3/aweme/detail/detail/trends"
 
+	//// 自定义时间
+	//fromDateCode := awemePubTime.Format("20060102")
+	//toDateCode := time.Now().Format("20060102")
+	//
+	//// 构建新的查询参数，使用 period=0 & type=3 并指定起止日期
+	//query := fmt.Sprintf("awemeId=%s&dateCode=%s&period=0&type=3&fromDateCode=%s&toDateCode=%s&_=%d",
+	//	awemeID,
+	//	fromDateCode, // dateCode 通常与 fromDateCode 保持一致
+	//	fromDateCode,
+	//	toDateCode,
+	//	time.Now().UnixMilli(),
+	//)
+	t := time.Now().UnixMilli()
+
 	// 手动拼接参数顺序，确保 awemeId, dateCode, period, type, _
-	query := fmt.Sprintf("awemeId=%s&dateCode=%s&period=30&type=1&_=%d",
+	query := fmt.Sprintf("awemeId=%s&dateCode=%s&period=30&type=1&_=%v",
 		awemeID,
 		awemePubTime.Format("20060102"),
-		time.Now().UnixMilli(),
+		t,
 	)
 	fullUrl := apiEndpoint + "?" + query
 	f.log.WithContext(ctx).Infof("Requesting Trend URL: %s", fullUrl)
@@ -128,11 +170,13 @@ func (f *FeiguaFetcher) FetchVideoTrend(ctx context.Context, awemeID string, awe
 
 	req.Header.Set("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36")
 	req.Header.Set("Cookie", f.conf.Feigua.Cookie)
-	req.Header.Set("Referer", f.conf.Feigua.BaseUrl+"/app/")
-	req.Header.Set("Origin", f.conf.Feigua.BaseUrl)
+	//req.Header.Set("Referer", f.conf.Feigua.BaseUrl+"/app/")
+	//req.Header.Set("Origin", f.conf.Feigua.BaseUrl)
+	//req.Header.Set("Host", "118.178.59.83:8085")
 	req.Header.Set("Accept", "application/json, text/plain, */*")
-	req.Header.Set("Accept-Language", "zh-CN,zh;q=0.9,en;q=0.8")
+	req.Header.Set("Accept-Language", "zh-CN,zh;q=0.9,en-US;q=0.8,en;q=0.7")
 	req.Header.Set("Accept-Encoding", "gzip, deflate")
+	req.Header.Set("Proxy-Connection", "keep-alive")
 
 	headersJson, _ := json.Marshal(req.Header)
 	meta := &RequestMetadata{
@@ -141,6 +185,11 @@ func (f *FeiguaFetcher) FetchVideoTrend(ctx context.Context, awemeID string, awe
 		Params:  query,
 		Headers: string(headersJson),
 	}
+
+	// --- 新增：打印 curl 命令用于调试 ---
+	curlCmd := utils.RequestToCurl(req)
+	f.log.WithContext(ctx).Infof("Generated CURL command:\n---\n%s\n---", curlCmd)
+	// --- 新增代码结束 ---
 
 	resp, err := f.client.Do(req)
 	if err != nil {
@@ -152,7 +201,22 @@ func (f *FeiguaFetcher) FetchVideoTrend(ctx context.Context, awemeID string, awe
 		return "", meta, fmt.Errorf("bad status code for video trend: %d", resp.StatusCode)
 	}
 
-	body, err := ioutil.ReadAll(resp.Body)
+	// --- 新增：Gzip解压逻辑 ---
+	var reader io.ReadCloser
+	switch resp.Header.Get("Content-Encoding") {
+	case "gzip":
+		reader, err = gzip.NewReader(resp.Body)
+		if err != nil {
+			return "", meta, fmt.Errorf("failed to create gzip reader: %w", err)
+		}
+		defer reader.Close()
+	default:
+		// 如果没有压缩或者是不认识的压缩格式，直接使用原始响应体
+		reader = resp.Body
+	}
+	// --- 解压逻辑结束 ---
+
+	body, err := ioutil.ReadAll(reader) // 注意：这里从新的 reader 读取
 	if err != nil {
 		return "", meta, fmt.Errorf("failed to read response body for video trend: %w", err)
 	}

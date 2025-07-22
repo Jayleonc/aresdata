@@ -6,8 +6,9 @@ import (
 	"aresdata/internal/fetcher"
 	"context"
 	"fmt"
-	"github.com/go-kratos/kratos/v2/log"
 	"time"
+
+	"github.com/go-kratos/kratos/v2/log"
 )
 
 type FetcherUsecase struct {
@@ -25,9 +26,9 @@ func NewFetcherUsecase(repo data.SourceDataRepo, fetcher *fetcher.FeiguaFetcher,
 }
 
 // FetchAndStoreVideoRank 是一个具体的业务方法，负责采集视频榜单并存储
-func (uc *FetcherUsecase) FetchAndStoreVideoRank(ctx context.Context, period, datecode string) (*v1.SourceData, error) {
+func (uc *FetcherUsecase) FetchAndStoreVideoRank(ctx context.Context, period, datecode string, pageIndex, pageSize int) (*v1.SourceData, error) {
 	// 1. 调用 Fetcher 获取原始数据和请求元数据
-	rawContent, meta, err := uc.fetcher.FetchVideoRank(ctx, period, datecode)
+	rawContent, meta, err := uc.fetcher.FetchVideoRank(ctx, period, datecode, pageIndex, pageSize)
 	if err != nil {
 		uc.log.WithContext(ctx).Errorf("failed to fetch video rank from feigua: %v", err)
 		// 即使请求失败，也尝试记录请求上下文

@@ -136,7 +136,11 @@ type ListVideoRankRequest struct {
 	// 排名类型，例如"day", "week", "month"
 	RankType string `protobuf:"bytes,2,opt,name=rank_type,json=rankType,proto3" json:"rank_type,omitempty"`
 	// 排名日期，格式如"20250716"
-	RankDate      string `protobuf:"bytes,3,opt,name=rank_date,json=rankDate,proto3" json:"rank_date,omitempty"`
+	RankDate string `protobuf:"bytes,3,opt,name=rank_date,json=rankDate,proto3" json:"rank_date,omitempty"`
+	// 排序字段，例如 "salesCountStr", "totalSalesStr"
+	SortBy string `protobuf:"bytes,4,opt,name=sort_by,json=sortBy,proto3" json:"sort_by,omitempty"`
+	// 排序方式，例如"asc", "desc"
+	SortOrder     string `protobuf:"bytes,5,opt,name=sort_order,json=sortOrder,proto3" json:"sort_order,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -188,6 +192,20 @@ func (x *ListVideoRankRequest) GetRankType() string {
 func (x *ListVideoRankRequest) GetRankDate() string {
 	if x != nil {
 		return x.RankDate
+	}
+	return ""
+}
+
+func (x *ListVideoRankRequest) GetSortBy() string {
+	if x != nil {
+		return x.SortBy
+	}
+	return ""
+}
+
+func (x *ListVideoRankRequest) GetSortOrder() string {
+	if x != nil {
+		return x.SortOrder
 	}
 	return ""
 }
@@ -314,17 +332,22 @@ type VideoRankDTO struct {
 	// 榜单统计
 	// 销量字符串
 	SalesCountStr string `protobuf:"bytes,31,opt,name=sales_count_str,json=salesCountStr,proto3" json:"sales_count_str,omitempty"`
-	// 累计销量字符串
+	// 销售额字符串
 	TotalSalesStr string `protobuf:"bytes,32,opt,name=total_sales_str,json=totalSalesStr,proto3" json:"total_sales_str,omitempty"`
 	// 点赞增量字符串
 	LikeCountIncStr string `protobuf:"bytes,33,opt,name=like_count_inc_str,json=likeCountIncStr,proto3" json:"like_count_inc_str,omitempty"`
 	// 播放增量字符串
 	PlayCountIncStr string `protobuf:"bytes,34,opt,name=play_count_inc_str,json=playCountIncStr,proto3" json:"play_count_inc_str,omitempty"`
-	// 元数据
-	// 原始元数据JSON
-	RawJson       string `protobuf:"bytes,35,opt,name=raw_json,json=rawJson,proto3" json:"raw_json,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	// 销量范围低值
+	SalesCountLow int64 `protobuf:"varint,35,opt,name=sales_count_low,json=salesCountLow,proto3" json:"sales_count_low,omitempty"`
+	// 销量范围高值
+	SalesCountHigh int64 `protobuf:"varint,36,opt,name=sales_count_high,json=salesCountHigh,proto3" json:"sales_count_high,omitempty"`
+	// 销售额范围低值
+	TotalSalesLow int64 `protobuf:"varint,37,opt,name=total_sales_low,json=totalSalesLow,proto3" json:"total_sales_low,omitempty"`
+	// 销售额范围高值
+	TotalSalesHigh int64 `protobuf:"varint,38,opt,name=total_sales_high,json=totalSalesHigh,proto3" json:"total_sales_high,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *VideoRankDTO) Reset() {
@@ -588,11 +611,32 @@ func (x *VideoRankDTO) GetPlayCountIncStr() string {
 	return ""
 }
 
-func (x *VideoRankDTO) GetRawJson() string {
+func (x *VideoRankDTO) GetSalesCountLow() int64 {
 	if x != nil {
-		return x.RawJson
+		return x.SalesCountLow
 	}
-	return ""
+	return 0
+}
+
+func (x *VideoRankDTO) GetSalesCountHigh() int64 {
+	if x != nil {
+		return x.SalesCountHigh
+	}
+	return 0
+}
+
+func (x *VideoRankDTO) GetTotalSalesLow() int64 {
+	if x != nil {
+		return x.TotalSalesLow
+	}
+	return 0
+}
+
+func (x *VideoRankDTO) GetTotalSalesHigh() int64 {
+	if x != nil {
+		return x.TotalSalesHigh
+	}
+	return 0
 }
 
 var File_v1_video_rank_proto protoreflect.FileDescriptor
@@ -605,14 +649,18 @@ const file_v1_video_rank_proto_rawDesc = "" +
 	"\trank_type\x18\x02 \x01(\tR\brankType\x12\x1b\n" +
 	"\trank_date\x18\x03 \x01(\tR\brankDate\";\n" +
 	"\x16VideoRankQueryResponse\x12!\n" +
-	"\x04rank\x18\x01 \x01(\v2\r.VideoRankDTOR\x04rank\"r\n" +
+	"\x04rank\x18\x01 \x01(\v2\r.VideoRankDTOR\x04rank\"\xaa\x01\n" +
 	"\x14ListVideoRankRequest\x12 \n" +
 	"\x04page\x18\x01 \x01(\v2\f.PageRequestR\x04page\x12\x1b\n" +
 	"\trank_type\x18\x02 \x01(\tR\brankType\x12\x1b\n" +
-	"\trank_date\x18\x03 \x01(\tR\brankDate\"_\n" +
+	"\trank_date\x18\x03 \x01(\tR\brankDate\x12\x17\n" +
+	"\asort_by\x18\x04 \x01(\tR\x06sortBy\x12\x1d\n" +
+	"\n" +
+	"sort_order\x18\x05 \x01(\tR\tsortOrder\"_\n" +
 	"\x15ListVideoRankResponse\x12!\n" +
 	"\x04page\x18\x01 \x01(\v2\r.PageResponseR\x04page\x12#\n" +
-	"\x05ranks\x18\x02 \x03(\v2\r.VideoRankDTOR\x05ranks\"\xa6\t\n" +
+	"\x05ranks\x18\x02 \x03(\v2\r.VideoRankDTOR\x05ranks\"\xaf\n" +
+	"\n" +
 	"\fVideoRankDTO\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x1d\n" +
 	"\n" +
@@ -657,8 +705,11 @@ const file_v1_video_rank_proto_rawDesc = "" +
 	"\x0fsales_count_str\x18\x1f \x01(\tR\rsalesCountStr\x12&\n" +
 	"\x0ftotal_sales_str\x18  \x01(\tR\rtotalSalesStr\x12+\n" +
 	"\x12like_count_inc_str\x18! \x01(\tR\x0flikeCountIncStr\x12+\n" +
-	"\x12play_count_inc_str\x18\" \x01(\tR\x0fplayCountIncStr\x12\x19\n" +
-	"\braw_json\x18# \x01(\tR\arawJson2\xc7\x01\n" +
+	"\x12play_count_inc_str\x18\" \x01(\tR\x0fplayCountIncStr\x12&\n" +
+	"\x0fsales_count_low\x18# \x01(\x03R\rsalesCountLow\x12(\n" +
+	"\x10sales_count_high\x18$ \x01(\x03R\x0esalesCountHigh\x12&\n" +
+	"\x0ftotal_sales_low\x18% \x01(\x03R\rtotalSalesLow\x12(\n" +
+	"\x10total_sales_high\x18& \x01(\x03R\x0etotalSalesHigh2\xc7\x01\n" +
 	"\tVideoRank\x12Z\n" +
 	"\fGetVideoRank\x12\x16.VideoRankQueryRequest\x1a\x17.VideoRankQueryResponse\"\x19\x82\xd3\xe4\x93\x02\x13:\x01*\"\x0e/v1/video_rank\x12^\n" +
 	"\rListVideoRank\x12\x15.ListVideoRankRequest\x1a\x16.ListVideoRankResponse\"\x1e\x82\xd3\xe4\x93\x02\x18:\x01*\"\x13/v1/video_rank/listB\x14Z\x12aresdata/api/v1;v1b\x06proto3"

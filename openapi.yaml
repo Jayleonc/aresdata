@@ -308,6 +308,12 @@ components:
                 rankDate:
                     type: string
                     description: 排名日期，格式如"20250716"
+                sortBy:
+                    type: string
+                    description: 排序字段，例如 "salesCountStr", "totalSalesStr"
+                sortOrder:
+                    type: string
+                    description: 排序方式，例如"asc", "desc"
             description: 分页查询请求
         .ListVideoRankResponse:
             type: object
@@ -604,18 +610,25 @@ components:
                          销量字符串
                 totalSalesStr:
                     type: string
-                    description: 累计销量字符串
+                    description: 销售额字符串
                 likeCountIncStr:
                     type: string
                     description: 点赞增量字符串
                 playCountIncStr:
                     type: string
                     description: 播放增量字符串
-                rawJson:
+                salesCountLow:
                     type: string
-                    description: |-
-                        元数据
-                         原始元数据JSON
+                    description: 销量范围低值
+                salesCountHigh:
+                    type: string
+                    description: 销量范围高值
+                totalSalesLow:
+                    type: string
+                    description: 销售额范围低值
+                totalSalesHigh:
+                    type: string
+                    description: 销售额范围高值
             description: 榜单视频榜结构
         .VideoRankQueryRequest:
             type: object

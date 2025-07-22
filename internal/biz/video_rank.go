@@ -24,8 +24,8 @@ func (uc *VideoRankUsecase) GetVideoRank(ctx context.Context, awemeID, rankType,
 }
 
 // ListVideoRank 分页查询视频榜单
-func (uc *VideoRankUsecase) ListVideoRank(ctx context.Context, page, size int, rankType, rankDate string) ([]*v1.VideoRankDTO, int64, error) {
-	return uc.repo.ListPage(ctx, page, size, rankType, rankDate)
+func (uc *VideoRankUsecase) ListVideoRank(ctx context.Context, page, size int, rankType, rankDate, sortBy, sortOrder string) ([]*v1.VideoRankDTO, int64, error) {
+	return uc.repo.ListPage(ctx, page, size, rankType, rankDate, sortBy, sortOrder)
 }
 
 // GetTrackedAwemeIDs 获取需要追踪的视频ID列表

@@ -60,6 +60,10 @@ func NewThrottledTransport(minWaitMs, maxWaitMs int32, logger log.Logger) http.R
 		}
 	}()
 
+	//tr := &http.Transport{
+	//	TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	//}
+
 	return &throttledTransport{
 		next:        http.DefaultTransport,
 		rateLimiter: ticker,

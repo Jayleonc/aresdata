@@ -4,6 +4,7 @@ import (
 	v1 "aresdata/api/v1"
 	"aresdata/pkg/utils"
 	"context"
+	"strings"
 	"time"
 )
 
@@ -15,7 +16,7 @@ type VideoRankRepo interface {
 	// 查询单个视频榜单
 	GetByAwemeID(ctx context.Context, awemeID, rankType, rankDate string) (*v1.VideoRankDTO, error)
 	// 分页查询视频榜单
-	ListPage(ctx context.Context, page, size int, rankType, rankDate string) ([]*v1.VideoRankDTO, int64, error)
+	ListPage(ctx context.Context, page, size int, rankType, rankDate, sortBy, sortOrder string) ([]*v1.VideoRankDTO, int64, error)
 	// GetDistinctAwemeIDsByDate 获取指定日期之后上过榜的、不重复的视频ID
 	GetDistinctAwemeIDsByDate(ctx context.Context, sinceDate string) ([]string, error)
 }
@@ -67,8 +68,10 @@ type VideoRank struct {
 	LikeCountIncStr string `gorm:"column:like_count_inc_str;size:1024;not null;default:''"`
 	PlayCountIncStr string `gorm:"column:play_count_inc_str;size:1024;not null;default:''"`
 
-	// 元数据
-	RawJson string `gorm:"column:raw_json;type:text;not null;default:''"`
+	SalesCountLow  int64 `gorm:"column:sales_count_low;comment:销量范围低值"`
+	SalesCountHigh int64 `gorm:"column:sales_count_high;comment:销量范围高值"`
+	TotalSalesLow  int64 `gorm:"column:total_sales_low;comment:销售额范围低值（分）"`
+	TotalSalesHigh int64 `gorm:"column:total_sales_high;comment:销售额范围高值（分）"`
 }
 
 // videoRankRepo implements VideoRankRepo using GORM.
@@ -101,7 +104,7 @@ func (r *videoRankRepo) GetByAwemeID(ctx context.Context, awemeID, rankType, ran
 }
 
 // ListPage 分页查询视频榜单
-func (r *videoRankRepo) ListPage(ctx context.Context, page, size int, rankType, rankDate string) ([]*v1.VideoRankDTO, int64, error) {
+func (r *videoRankRepo) ListPage(ctx context.Context, page, size int, rankType, rankDate, sortBy, sortOrder string) ([]*v1.VideoRankDTO, int64, error) {
 	var models []*VideoRank
 	var total int64
 
@@ -115,6 +118,29 @@ func (r *videoRankRepo) ListPage(ctx context.Context, page, size int, rankType, 
 		db = db.Where("rank_date = ?", rankDate)
 	}
 
+	// 应用排序逻辑
+	if sortBy != "" {
+		var orderColumn string
+		switch sortBy {
+		case "salesCountStr":
+			orderColumn = "sales_count_high" // 按销量范围最高值排序
+		case "totalSalesStr":
+			orderColumn = "total_sales_high" // 按销售额范围最高值排序
+		// 可以根据需要添加其他排序字段
+		default:
+			orderColumn = "" // 对于未知的排序字段，忽略排序
+		}
+
+		if orderColumn != "" {
+			// 根据 sort_order 参数决定升序或降序
+			if strings.ToLower(sortOrder) == "desc" {
+				db = db.Order(orderColumn + " DESC")
+			} else {
+				db = db.Order(orderColumn + " ASC")
+			}
+		}
+	}
+
 	// 计算总数
 	if err := db.Count(&total).Error; err != nil {
 		return nil, 0, err
@@ -122,7 +148,7 @@ func (r *videoRankRepo) ListPage(ctx context.Context, page, size int, rankType, 
 
 	// 分页查询
 	offset := (page - 1) * size
-	if err := db.Offset(offset).Limit(size).Order("id asc").Find(&models).Error; err != nil {
+	if err := db.Offset(offset).Limit(size).Find(&models).Error; err != nil {
 		return nil, 0, err
 	}
 
@@ -185,7 +211,10 @@ func copyVideoRankToDO(dto *v1.VideoRankDTO) *VideoRank {
 		TotalSalesStr:   dto.TotalSalesStr,
 		LikeCountIncStr: dto.LikeCountIncStr,
 		PlayCountIncStr: dto.PlayCountIncStr,
-		RawJson:         dto.RawJson,
+		SalesCountLow:   dto.SalesCountLow,
+		SalesCountHigh:  dto.SalesCountHigh,
+		TotalSalesLow:   dto.TotalSalesLow,
+		TotalSalesHigh:  dto.TotalSalesHigh,
 	}
 }
 
@@ -227,6 +256,9 @@ func CopyVideoRankToDTO(do *VideoRank) *v1.VideoRankDTO {
 		TotalSalesStr:   do.TotalSalesStr,
 		LikeCountIncStr: do.LikeCountIncStr,
 		PlayCountIncStr: do.PlayCountIncStr,
-		RawJson:         do.RawJson,
+		SalesCountLow:   do.SalesCountLow,
+		SalesCountHigh:  do.SalesCountHigh,
+		TotalSalesLow:   do.TotalSalesLow,
+		TotalSalesHigh:  do.TotalSalesHigh,
 	}
 }

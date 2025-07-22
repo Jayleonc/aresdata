@@ -38,7 +38,10 @@ func (s *VideoRankService) ListVideoRank(ctx context.Context, req *pb.ListVideoR
 		req.Page.Size = 10
 	}
 
-	ranks, total, err := s.uc.ListVideoRank(ctx, int(req.Page.Page), int(req.Page.Size), req.RankType, req.RankDate)
+	sortBy := req.GetSortBy()
+	sortOrder := req.GetSortOrder()
+
+	ranks, total, err := s.uc.ListVideoRank(ctx, int(req.Page.Page), int(req.Page.Size), req.RankType, req.RankDate, sortBy, sortOrder)
 	if err != nil {
 		return nil, err
 	}

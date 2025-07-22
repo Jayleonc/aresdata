@@ -4,6 +4,7 @@ import (
 	v1 "aresdata/api/v1"
 	"aresdata/internal/data"
 	"aresdata/pkg/crypto"
+	"aresdata/pkg/utils"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -181,9 +182,17 @@ func (p *VideoRankProcessor) Process(ctx context.Context, rawData *v1.SourceData
 			LikeCountIncStr: item.LikeCountInc,
 			PlayCountIncStr: item.PlayCountInc,
 		}
-		// 存储原始JSON，便于追溯
-		//rawJSONBytes, _ := json.Marshal(item)
-		//vr.RawJson = string(rawJSONBytes)
+		// --- 新增：解析销量和销售额范围 ---
+		salesCountLow, salesCountHigh := utils.ParseRangeStr(item.SalesCount)
+		vr.SalesCountLow = salesCountLow
+		vr.SalesCountHigh = salesCountHigh
+
+		// 销售额 totalSales 的单位是万元，解析后需要再乘以100转为分
+		totalSalesLowRaw, totalSalesHighRaw := utils.ParseRangeStr(item.TotalSales)
+		vr.TotalSalesLow = totalSalesLowRaw * 100
+		vr.TotalSalesHigh = totalSalesHighRaw * 100
+		// --- 新增代码结束 ---
+
 		ranksToCreate = append(ranksToCreate, vr)
 
 		// --- 维度表更新 ---

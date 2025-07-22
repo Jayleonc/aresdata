@@ -7,8 +7,8 @@ import (
 
 // VideoForTrend 定义了用于趋势采集的视频基础信息
 type VideoForTrend struct {
-	AwemeId      string
-	AwemePubTime time.Time `gorm:"type:timestamp"`
+	AwemeId      string    `json:"aweme_id"`
+	AwemePubTime time.Time `json:"aweme_pub_time" gorm:"type:timestamp"`
 }
 
 // FindVideosNeedingTrendUpdate 查找需要更新趋势数据的视频

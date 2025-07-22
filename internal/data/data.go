@@ -37,6 +37,7 @@ func NewData(c *conf.Data, redisClient redis.Cmdable, logger log.Logger) (*Data,
 		NowFunc: func() time.Time {
 			return time.Now().In(loc)
 		},
+		DefaultTransactionTimeout: 10 * time.Second,
 	}
 	db, err := gorm.Open(postgres.Open(c.Database.Source), gormConfig)
 	if err != nil {
