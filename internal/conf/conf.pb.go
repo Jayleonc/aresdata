@@ -200,10 +200,18 @@ type Feigua struct {
 	BaseUrl string                 `protobuf:"bytes,1,opt,name=base_url,json=baseUrl,proto3" json:"base_url,omitempty"`
 	Cookie  string                 `protobuf:"bytes,2,opt,name=cookie,proto3" json:"cookie,omitempty"`
 	// 节流配置
-	ThrottleMinWaitMs int32 `protobuf:"varint,3,opt,name=throttle_min_wait_ms,json=throttleMinWaitMs,proto3" json:"throttle_min_wait_ms,omitempty"` // 最小等待时间（毫秒）
-	ThrottleMaxWaitMs int32 `protobuf:"varint,4,opt,name=throttle_max_wait_ms,json=throttleMaxWaitMs,proto3" json:"throttle_max_wait_ms,omitempty"` // 最大等待时间（毫秒）
-	unknownFields     protoimpl.UnknownFields
-	sizeCache         protoimpl.SizeCache
+	ThrottleMinWaitMs   int32  `protobuf:"varint,3,opt,name=throttle_min_wait_ms,json=throttleMinWaitMs,proto3" json:"throttle_min_wait_ms,omitempty"`       // 最小等待时间（毫秒）
+	ThrottleMaxWaitMs   int32  `protobuf:"varint,4,opt,name=throttle_max_wait_ms,json=throttleMaxWaitMs,proto3" json:"throttle_max_wait_ms,omitempty"`       // 最大等待时间（毫秒）
+	CookiePath          string `protobuf:"bytes,5,opt,name=cookie_path,json=cookiePath,proto3" json:"cookie_path,omitempty"`                                 // 存放登录后 cookies 的文件路径
+	UserAgent           string `protobuf:"bytes,6,opt,name=user_agent,json=userAgent,proto3" json:"user_agent,omitempty"`                                    // 浏览器 User-Agent
+	ThrottleStartWaitMs int32  `protobuf:"varint,7,opt,name=throttle_start_wait_ms,json=throttleStartWaitMs,proto3" json:"throttle_start_wait_ms,omitempty"` // 节流起始等待时间（毫秒）
+	// --- 新增 chromedp 相关配置 ---
+	Headless      bool   `protobuf:"varint,9,opt,name=headless,proto3" json:"headless,omitempty"`                                // 是否以无头模式运行 (true: 后台运行, false: 显示浏览器界面，用于调试)
+	Proxy         string `protobuf:"bytes,10,opt,name=proxy,proto3" json:"proxy,omitempty"`                                      // 代理服务器地址, 例如 "http://user:pass@host:port"
+	Timeout       int32  `protobuf:"varint,11,opt,name=timeout,proto3" json:"timeout,omitempty"`                                 // 单个采集任务的超时时间（秒）
+	CookieContent string `protobuf:"bytes,12,opt,name=cookie_content,json=cookieContent,proto3" json:"cookie_content,omitempty"` // 直接在这里配置 cookie 的内容，优先级高于 cookie_path
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *Feigua) Reset() {
@@ -262,6 +270,55 @@ func (x *Feigua) GetThrottleMaxWaitMs() int32 {
 		return x.ThrottleMaxWaitMs
 	}
 	return 0
+}
+
+func (x *Feigua) GetCookiePath() string {
+	if x != nil {
+		return x.CookiePath
+	}
+	return ""
+}
+
+func (x *Feigua) GetUserAgent() string {
+	if x != nil {
+		return x.UserAgent
+	}
+	return ""
+}
+
+func (x *Feigua) GetThrottleStartWaitMs() int32 {
+	if x != nil {
+		return x.ThrottleStartWaitMs
+	}
+	return 0
+}
+
+func (x *Feigua) GetHeadless() bool {
+	if x != nil {
+		return x.Headless
+	}
+	return false
+}
+
+func (x *Feigua) GetProxy() string {
+	if x != nil {
+		return x.Proxy
+	}
+	return ""
+}
+
+func (x *Feigua) GetTimeout() int32 {
+	if x != nil {
+		return x.Timeout
+	}
+	return 0
+}
+
+func (x *Feigua) GetCookieContent() string {
+	if x != nil {
+		return x.CookieContent
+	}
+	return ""
 }
 
 // 在文件底部，`Data` message 定义之后，添加新的 Job message
@@ -590,12 +647,22 @@ const file_conf_conf_proto_rawDesc = "" +
 	"\x04addr\x18\x02 \x01(\tR\x04addr\x12\x1a\n" +
 	"\bpassword\x18\x03 \x01(\tR\bpassword\x12<\n" +
 	"\fread_timeout\x18\x04 \x01(\v2\x19.google.protobuf.DurationR\vreadTimeout\x12>\n" +
-	"\rwrite_timeout\x18\x05 \x01(\v2\x19.google.protobuf.DurationR\fwriteTimeout\"\x9d\x01\n" +
+	"\rwrite_timeout\x18\x05 \x01(\v2\x19.google.protobuf.DurationR\fwriteTimeout\"\x85\x03\n" +
 	"\x06Feigua\x12\x19\n" +
 	"\bbase_url\x18\x01 \x01(\tR\abaseUrl\x12\x16\n" +
 	"\x06cookie\x18\x02 \x01(\tR\x06cookie\x12/\n" +
 	"\x14throttle_min_wait_ms\x18\x03 \x01(\x05R\x11throttleMinWaitMs\x12/\n" +
-	"\x14throttle_max_wait_ms\x18\x04 \x01(\x05R\x11throttleMaxWaitMs\"8\n" +
+	"\x14throttle_max_wait_ms\x18\x04 \x01(\x05R\x11throttleMaxWaitMs\x12\x1f\n" +
+	"\vcookie_path\x18\x05 \x01(\tR\n" +
+	"cookiePath\x12\x1d\n" +
+	"\n" +
+	"user_agent\x18\x06 \x01(\tR\tuserAgent\x123\n" +
+	"\x16throttle_start_wait_ms\x18\a \x01(\x05R\x13throttleStartWaitMs\x12\x1a\n" +
+	"\bheadless\x18\t \x01(\bR\bheadless\x12\x14\n" +
+	"\x05proxy\x18\n" +
+	" \x01(\tR\x05proxy\x12\x18\n" +
+	"\atimeout\x18\v \x01(\x05R\atimeout\x12%\n" +
+	"\x0ecookie_content\x18\f \x01(\tR\rcookieContent\"8\n" +
 	"\x03Job\x121\n" +
 	"\x15fetch_video_rank_cron\x18\x01 \x01(\tR\x12fetchVideoRankCronB\x1dZ\x1baresdata/internal/conf;confb\x06proto3"
 

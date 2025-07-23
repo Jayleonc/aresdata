@@ -1,10 +1,12 @@
 module aresdata
 
-go 1.21
+go 1.24
 
-toolchain go1.22.6
+toolchain go1.24.4
 
 require (
+	github.com/chromedp/cdproto v0.0.0-20250715215929-4738bcb231c7
+	github.com/chromedp/chromedp v0.13.7
 	github.com/go-kratos/kratos/v2 v2.8.0
 	github.com/google/wire v0.6.0
 	github.com/redis/go-redis/v9 v9.11.0
@@ -14,6 +16,14 @@ require (
 	google.golang.org/protobuf v1.34.1
 	gorm.io/driver/postgres v1.6.0
 	gorm.io/gorm v1.30.0
+)
+
+require (
+	github.com/chromedp/sysutil v1.1.0 // indirect
+	github.com/go-json-experiment/json v0.0.0-20250714165856-be8212f5270d // indirect
+	github.com/gobwas/httphead v0.1.0 // indirect
+	github.com/gobwas/pool v0.2.1 // indirect
+	github.com/gobwas/ws v1.4.0 // indirect
 )
 
 require (
@@ -42,7 +52,7 @@ require (
 	golang.org/x/crypto v0.31.0 // indirect
 	golang.org/x/net v0.25.0 // indirect
 	golang.org/x/sync v0.10.0 // indirect
-	golang.org/x/sys v0.28.0 // indirect
+	golang.org/x/sys v0.34.0 // indirect
 	golang.org/x/text v0.21.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240528184218-531527333157 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect

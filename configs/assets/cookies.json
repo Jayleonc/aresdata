@@ -1,0 +1,28 @@
+[
+  {
+    "domain": "118.31.20.20",
+    "hostOnly": true,
+    "httpOnly": false,
+    "name": "body_collapsed",
+    "path": "/",
+    "sameSite": "unspecified",
+    "secure": false,
+    "session": true,
+    "storeId": "0",
+    "value": "0",
+    "id": 1
+  },
+  {
+    "domain": "118.31.20.20",
+    "hostOnly": true,
+    "httpOnly": false,
+    "name": "PHPSESSID",
+    "path": "/",
+    "sameSite": "unspecified",
+    "secure": false,
+    "session": true,
+    "storeId": "0",
+    "value": "tdn5sqcnh1ub2413v9n6ffdpgt",
+    "id": 2
+  }
+]

@@ -51,6 +51,16 @@ message Feigua {
 	// 节流配置
 	int32 throttle_min_wait_ms = 3; // 最小等待时间（毫秒）
 	int32 throttle_max_wait_ms = 4; // 最大等待时间（毫秒）
+
+	string cookie_path = 5;         // 存放登录后 cookies 的文件路径
+	string user_agent = 6;          // 浏览器 User-Agent
+	int32 throttle_start_wait_ms = 7; // 节流起始等待时间（毫秒）
+
+	// --- 新增 chromedp 相关配置 ---
+	bool headless = 9;         // 是否以无头模式运行 (true: 后台运行, false: 显示浏览器界面，用于调试)
+	string proxy = 10;            // 代理服务器地址, 例如 "http://user:pass@host:port"
+	int32 timeout = 11;           // 单个采集任务的超时时间（秒）
+	string cookie_content = 12;     // 直接在这里配置 cookie 的内容，优先级高于 cookie_path
 }
 
 
