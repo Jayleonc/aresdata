@@ -38,9 +38,9 @@ func NewHeadlessFetcher(c *conf.Data, logger log.Logger) *HeadlessFetcher {
 	}
 }
 
-// FetchTrend 终极方案：先访问入口页面，执行JS生成签名URL，再导航并拦截API响应
+// FetchTrend 先访问入口页面，执行JS生成签名URL，再导航并拦截API响应
 func (f *HeadlessFetcher) FetchTrend(ctx context.Context, awemeID string, dateCode string) (string, *HeadlessRequestMetadata, error) {
-	f.log.Infof("开始为视频 %s 执行【终极方案】采集...", awemeID)
+	f.log.Infof("开始为视频 %s 执行【无头浏览器方案】采集...", awemeID)
 
 	// --- 1. 定义入口页面URL和元数据 ---
 	entryPageURL := f.cfg.BaseUrl + "/app/#/"

@@ -38,6 +38,10 @@ message VideoDTO {
 	string aweme_cover_url = 5;
 	// 视频发布时间
 	string aweme_pub_time = 6;
+	// 视频分享URL
+	string aweme_share_url = 39;
+	// 视频详情URL
+	string aweme_detail_url = 40;
 	// 博主ID
 	int64 blogger_id = 7;
 	// 播放量字符串

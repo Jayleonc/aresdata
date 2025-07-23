@@ -294,7 +294,8 @@ type VideoRankDTO struct {
 	// 视频时长字符串
 	DurationStr string `protobuf:"bytes,13,opt,name=duration_str,json=durationStr,proto3" json:"duration_str,omitempty"`
 	// 视频分数字符串
-	AwemeScoreStr string `protobuf:"bytes,14,opt,name=aweme_score_str,json=awemeScoreStr,proto3" json:"aweme_score_str,omitempty"`
+	AwemeScoreStr  string `protobuf:"bytes,14,opt,name=aweme_score_str,json=awemeScoreStr,proto3" json:"aweme_score_str,omitempty"`
+	AwemeDetailUrl string `protobuf:"bytes,40,opt,name=aweme_detail_url,json=awemeDetailUrl,proto3" json:"aweme_detail_url,omitempty"`
 	// 商品信息
 	// 商品ID
 	GoodsId string `protobuf:"bytes,15,opt,name=goods_id,json=goodsId,proto3" json:"goods_id,omitempty"`
@@ -467,6 +468,13 @@ func (x *VideoRankDTO) GetDurationStr() string {
 func (x *VideoRankDTO) GetAwemeScoreStr() string {
 	if x != nil {
 		return x.AwemeScoreStr
+	}
+	return ""
+}
+
+func (x *VideoRankDTO) GetAwemeDetailUrl() string {
+	if x != nil {
+		return x.AwemeDetailUrl
 	}
 	return ""
 }
@@ -659,7 +667,7 @@ const file_v1_video_rank_proto_rawDesc = "" +
 	"sort_order\x18\x05 \x01(\tR\tsortOrder\"_\n" +
 	"\x15ListVideoRankResponse\x12!\n" +
 	"\x04page\x18\x01 \x01(\v2\r.PageResponseR\x04page\x12#\n" +
-	"\x05ranks\x18\x02 \x03(\v2\r.VideoRankDTOR\x05ranks\"\xaf\n" +
+	"\x05ranks\x18\x02 \x03(\v2\r.VideoRankDTOR\x05ranks\"\xd9\n" +
 	"\n" +
 	"\fVideoRankDTO\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x1d\n" +
@@ -679,7 +687,8 @@ const file_v1_video_rank_proto_rawDesc = "" +
 	"\x0eaweme_pub_time\x18\v \x01(\tR\fawemePubTime\x12&\n" +
 	"\x0faweme_share_url\x18\f \x01(\tR\rawemeShareUrl\x12!\n" +
 	"\fduration_str\x18\r \x01(\tR\vdurationStr\x12&\n" +
-	"\x0faweme_score_str\x18\x0e \x01(\tR\rawemeScoreStr\x12\x19\n" +
+	"\x0faweme_score_str\x18\x0e \x01(\tR\rawemeScoreStr\x12(\n" +
+	"\x10aweme_detail_url\x18( \x01(\tR\x0eawemeDetailUrl\x12\x19\n" +
 	"\bgoods_id\x18\x0f \x01(\tR\agoodsId\x12\x1f\n" +
 	"\vgoods_title\x18\x10 \x01(\tR\n" +
 	"goodsTitle\x12&\n" +

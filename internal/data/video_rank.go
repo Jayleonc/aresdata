@@ -34,13 +34,14 @@ type VideoRank struct {
 	EndDate    string `gorm:"column:end_date;size:1024;not null;default:''"`
 
 	// 视频信息
-	AwemeId       string    `gorm:"column:aweme_id;size:1024;not null"`
-	AwemeCoverUrl string    `gorm:"column:aweme_cover_url;size:1024;not null;default:''"`
-	AwemeDesc     string    `gorm:"column:aweme_desc;type:text;not null;default:''"`
-	AwemePubTime  time.Time `gorm:"column:aweme_pub_time;type:timestamp"`
-	AwemeShareUrl string    `gorm:"column:aweme_share_url;size:1024;not null;default:''"`
-	DurationStr   string    `gorm:"column:duration_str;size:1024;not null;default:''"`
-	AwemeScoreStr string    `gorm:"column:aweme_score_str;size:1024;not null;default:''"`
+	AwemeId        string    `gorm:"column:aweme_id;size:1024;not null"`
+	AwemeCoverUrl  string    `gorm:"column:aweme_cover_url;size:1024;not null;default:''"`
+	AwemeDesc      string    `gorm:"column:aweme_desc;type:text;not null;default:''"`
+	AwemePubTime   time.Time `gorm:"column:aweme_pub_time;type:timestamp"`
+	AwemeShareUrl  string    `gorm:"column:aweme_share_url;size:1024;not null;default:''"`
+	DurationStr    string    `gorm:"column:duration_str;size:1024;not null;default:''"`
+	AwemeScoreStr  string    `gorm:"column:aweme_score_str;size:1024;not null;default:''"`
+	AwemeDetailUrl string    `gorm:"column:aweme_detail_url;size:1024;not null;default:''"`
 
 	// 商品信息
 	GoodsId         string  `gorm:"column:goods_id;size:1024;not null"`
@@ -179,7 +180,6 @@ func copyVideoRankToDO(dto *v1.VideoRankDTO) *VideoRank {
 		return nil
 	}
 	return &VideoRank{
-
 		PeriodType:      dto.PeriodType,
 		RankDate:        dto.RankDate,
 		StartDate:       dto.StartDate,
@@ -189,6 +189,7 @@ func copyVideoRankToDO(dto *v1.VideoRankDTO) *VideoRank {
 		AwemeDesc:       dto.AwemeDesc,
 		AwemePubTime:    utils.ParseTimeRFC3339(dto.AwemePubTime),
 		AwemeShareUrl:   dto.AwemeShareUrl,
+		AwemeDetailUrl:  dto.AwemeDetailUrl,
 		DurationStr:     dto.DurationStr,
 		AwemeScoreStr:   dto.AwemeScoreStr,
 		GoodsId:         dto.GoodsId,
@@ -234,6 +235,7 @@ func CopyVideoRankToDTO(do *VideoRank) *v1.VideoRankDTO {
 		AwemeDesc:       do.AwemeDesc,
 		AwemePubTime:    do.AwemePubTime.Format(time.RFC3339),
 		AwemeShareUrl:   do.AwemeShareUrl,
+		AwemeDetailUrl:  do.AwemeDetailUrl,
 		DurationStr:     do.DurationStr,
 		AwemeScoreStr:   do.AwemeScoreStr,
 		GoodsId:         do.GoodsId,

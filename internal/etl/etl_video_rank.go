@@ -14,13 +14,14 @@ import (
 )
 
 type FeiguaAwemeDto struct {
-	AwemeId       string `json:"awemeId"`
-	AwemeCoverUrl string `json:"awemeCoverUrl"`
-	AwemeDesc     string `json:"awemeDesc"`
-	AwemePubTime  string `json:"awemePubTime"`
-	AwemeShareUrl string `json:"awemeShareUrl"`
-	DurationStr   string `json:"durationStr"`
-	AwemeScoreStr string `json:"awemeScoreStr"`
+	AwemeId        string `json:"awemeId"`
+	AwemeCoverUrl  string `json:"awemeCoverUrl"`
+	AwemeDesc      string `json:"awemeDesc"`
+	AwemePubTime   string `json:"awemePubTime"`
+	AwemeShareUrl  string `json:"awemeShareUrl"`
+	DurationStr    string `json:"durationStr"`
+	AwemeScoreStr  string `json:"awemeScoreStr"`
+	AwemeDetailUrl string `json:"awemeDetailUrl"`
 }
 
 type FeiguaGoodsDto struct {
@@ -148,13 +149,14 @@ func (p *VideoRankProcessor) Process(ctx context.Context, rawData *v1.SourceData
 			EndDate:    endDate,
 
 			// Aweme Info
-			AwemeId:       item.AwemeDto.AwemeId,
-			AwemeCoverUrl: item.AwemeDto.AwemeCoverUrl,
-			AwemeDesc:     item.AwemeDto.AwemeDesc,
-			AwemePubTime:  pubTime,
-			AwemeShareUrl: item.AwemeDto.AwemeShareUrl,
-			DurationStr:   item.AwemeDto.DurationStr,
-			AwemeScoreStr: item.AwemeDto.AwemeScoreStr,
+			AwemeId:        item.AwemeDto.AwemeId,
+			AwemeCoverUrl:  item.AwemeDto.AwemeCoverUrl,
+			AwemeDesc:      item.AwemeDto.AwemeDesc,
+			AwemePubTime:   pubTime,
+			AwemeShareUrl:  item.AwemeDto.AwemeShareUrl,
+			DurationStr:    item.AwemeDto.DurationStr,
+			AwemeScoreStr:  item.AwemeDto.AwemeScoreStr,
+			AwemeDetailUrl: item.AwemeDto.AwemeDetailUrl,
 
 			// Goods Info
 			GoodsId:         item.GoodsDto.Gid,

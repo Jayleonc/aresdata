@@ -61,84 +61,86 @@ message ListVideoRankResponse {
 
 // 榜单视频榜结构
 message VideoRankDTO {
-	    // 主键ID
-    int64 id = 1;
-	    // 创建时间
-    string created_at = 2;
+	// 主键ID
+	int64 id = 1;
+	// 创建时间
+	string created_at = 2;
 
 	// 榜单核心
-	
-	    // 榜单周期类型，如日榜、周榜
-    string period_type = 4;
-	    // 榜单日期
-    string rank_date = 5;
-	    // 榜单开始日期
-    string start_date = 6;
-	    // 榜单结束日期
-    string end_date = 7;
+
+	// 榜单周期类型，如日榜、周榜
+	string period_type = 4;
+	// 榜单日期
+	string rank_date = 5;
+	// 榜单开始日期
+	string start_date = 6;
+	// 榜单结束日期
+	string end_date = 7;
 
 	// 视频信息
-	    // 抖音视频ID
-    string aweme_id = 8;
-	    // 视频封面URL
-    string aweme_cover_url = 9;
-	    // 视频描述
-    string aweme_desc = 10;
-	    // 视频发布时间
-    string aweme_pub_time = 11;
-	    // 视频分享链接
-    string aweme_share_url = 12;
-	    // 视频时长字符串
-    string duration_str = 13;
-	    // 视频分数字符串
-    string aweme_score_str = 14;
+	// 抖音视频ID
+	string aweme_id = 8;
+	// 视频封面URL
+	string aweme_cover_url = 9;
+	// 视频描述
+	string aweme_desc = 10;
+	// 视频发布时间
+	string aweme_pub_time = 11;
+	// 视频分享链接
+	string aweme_share_url = 12;
+	// 视频时长字符串
+	string duration_str = 13;
+	// 视频分数字符串
+	string aweme_score_str = 14;
+
+	string aweme_detail_url = 40;
 
 	// 商品信息
-	    // 商品ID
-    string goods_id = 15;
-	    // 商品标题
-    string goods_title = 16;
-	    // 商品封面URL
-    string goods_cover_url = 17;
-	    // 商品价格区间
-    string goods_price_range = 18;
-	    // 商品价格
-    double goods_price = 19;
-	    // 成本比例
-    string cos_ratio = 20;
-	    // 佣金金额
-    string commission_price = 21;
-	    // 店铺名称
-    string shop_name = 22;
-	    // 品牌名称
-    string brand_name = 23;
-	    // 商品类目
-    string category_names = 24;
+	// 商品ID
+	string goods_id = 15;
+	// 商品标题
+	string goods_title = 16;
+	// 商品封面URL
+	string goods_cover_url = 17;
+	// 商品价格区间
+	string goods_price_range = 18;
+	// 商品价格
+	double goods_price = 19;
+	// 成本比例
+	string cos_ratio = 20;
+	// 佣金金额
+	string commission_price = 21;
+	// 店铺名称
+	string shop_name = 22;
+	// 品牌名称
+	string brand_name = 23;
+	// 商品类目
+	string category_names = 24;
 
 	// 博主信息
-	    // 博主ID
-    int32 blogger_id = 25;
-	    // 博主UID
-    string blogger_uid = 26;
-	    // 博主昵称
-    string blogger_name = 27;
-	    // 博主头像
-    string blogger_avatar = 28;
-	    // 博主粉丝数
-    int32 blogger_fans_num = 29;
-	    // 博主标签
-    string blogger_tag = 30;
+	// 博主ID
+	int32 blogger_id = 25;
+	// 博主UID
+	string blogger_uid = 26;
+	// 博主昵称
+	string blogger_name = 27;
+	// 博主头像
+	string blogger_avatar = 28;
+	// 博主粉丝数
+	int32 blogger_fans_num = 29;
+	// 博主标签
+	string blogger_tag = 30;
 
 	// 榜单统计
-	    // 销量字符串
-    string sales_count_str = 31;
-	    // 销售额字符串
-    string total_sales_str = 32;
-	    // 点赞增量字符串
-    string like_count_inc_str = 33;
-	    // 播放增量字符串
-    string play_count_inc_str = 34;
-	
+	// 销量字符串
+	string sales_count_str = 31;
+	// 销售额字符串
+	string total_sales_str = 32;
+	// 点赞增量字符串
+	string like_count_inc_str = 33;
+	// 播放增量字符串
+	string play_count_inc_str = 34;
+
 	// 销量范围低值
 	int64 sales_count_low = 35;
 	// 销量范围高值

@@ -445,6 +445,12 @@ components:
                 awemePubTime:
                     type: string
                     description: 视频发布时间
+                awemeShareUrl:
+                    type: string
+                    description: 视频分享URL
+                awemeDetailUrl:
+                    type: string
+                    description: 视频详情URL
                 bloggerId:
                     type: string
                     description: 博主ID
@@ -548,6 +554,8 @@ components:
                 awemeScoreStr:
                     type: string
                     description: 视频分数字符串
+                awemeDetailUrl:
+                    type: string
                 goodsId:
                     type: string
                     description: |-

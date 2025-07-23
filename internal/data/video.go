@@ -15,12 +15,13 @@ type Video struct {
 	UpdatedAt time.Time `gorm:"autoUpdateTime;type:timestamp"`
 
 	// --- 基础信息 ---
-	AwemeDesc     string    `gorm:"type:text"`
-	AwemeCoverUrl string    `gorm:"size:1024"`
-	AwemePubTime  time.Time `gorm:"type:timestamp"`
-	BloggerId     int64     `gorm:"index"`
+	AwemeDesc      string    `gorm:"type:text"`
+	AwemeCoverUrl  string    `gorm:"size:1024"`
+	AwemePubTime   time.Time `gorm:"type:timestamp"`
+	AwemeShareUrl  string    `gorm:"size:1024"`
+	AwemeDetailUrl string    `gorm:"size:1024"`
+	BloggerId      int64     `gorm:"index"`
 
-	// --- 新增：总览数据 (来自总量接口的原始字符串) ---
 	PlayCountStr       string `gorm:"size:255"`
 	LikeCountStr       string `gorm:"size:255"`
 	CommentCountStr    string `gorm:"size:255"`
@@ -35,7 +36,7 @@ type Video struct {
 	GpmStr             string `gorm:"size:255;column:gpm_str"` // 明确指定列名
 	AwemeType          int32  `gorm:"type:integer"`
 
-	// --- 详情信息 (来自下钻采集) ---
+	// --- 详情信息 (来自下钻采集) 暂时用不上 ---
 	DyTagsJSON          string `gorm:"type:text"`
 	HotSearchWordsJSON  string `gorm:"type:text"`
 	TopicsJSON          string `gorm:"type:text"`
@@ -43,8 +44,9 @@ type Video struct {
 	InteractionJSON     string `gorm:"type:text"`
 	AudienceProfileJSON string `gorm:"type:text"`
 
+	//
 	SummaryUpdatedAt *time.Time `gorm:"index;comment:总览数据更新时间;type:timestamp"`
-	TrendUpdatedAt   *time.Time `gorm:"index;comment:趋势数据更新时间;type:timestamp"` // 新增此行
+	TrendUpdatedAt   *time.Time `gorm:"index;comment:趋势数据更新时间;type:timestamp"`
 }
 
 func (Video) TableName() string {
@@ -52,14 +54,14 @@ func (Video) TableName() string {
 }
 
 type VideoRepo interface {
-	UpsertFromRank(ctx context.Context, video *Video) error    // 新方法
-	UpdateFromSummary(ctx context.Context, video *Video) error // 新方法
+	UpsertFromRank(ctx context.Context, video *Video) error
+	UpdateFromSummary(ctx context.Context, video *Video) error
 	FindVideosNeedingSummaryUpdate(ctx context.Context, limit int) ([]*VideoForSummary, error)
 	ListPage(ctx context.Context, page, size int, query, sortBy string, sortOrder v1.SortOrder) ([]*Video, int64, error)
 	Get(ctx context.Context, awemeId string) (*Video, error)
-	FindRecentActiveAwemeIds(ctx context.Context, days int) ([]string, error)              // 新增此行
-	FindVideosNeedingTrendUpdate(ctx context.Context, limit int) ([]*VideoForTrend, error) // 新增：筛选需要更新趋势采集的视频
-	UpdateTrendTimestamp(ctx context.Context, awemeId string) error                        // 新增：趋势更新时间戳回写方法
+	FindRecentActiveAwemeIds(ctx context.Context, days int) ([]string, error)
+	FindVideosNeedingTrendUpdate(ctx context.Context, limit int) ([]*VideoForTrend, error)
+	UpdateTrendTimestamp(ctx context.Context, awemeId string) error
 }
 
 type videoRepo struct {
@@ -141,6 +143,8 @@ func CopyVideoToDTO(v *Video) *v1.VideoDTO {
 		AwemeDesc:          v.AwemeDesc,
 		AwemeCoverUrl:      v.AwemeCoverUrl,
 		AwemePubTime:       v.AwemePubTime.Format(time.RFC3339),
+		AwemeShareUrl:      v.AwemeShareUrl,
+		AwemeDetailUrl:     v.AwemeDetailUrl,
 		BloggerId:          v.BloggerId,
 		PlayCountStr:       v.PlayCountStr,
 		LikeCountStr:       v.LikeCountStr,

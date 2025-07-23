@@ -37,6 +37,10 @@ type VideoDTO struct {
 	AwemeCoverUrl string `protobuf:"bytes,5,opt,name=aweme_cover_url,json=awemeCoverUrl,proto3" json:"aweme_cover_url,omitempty"`
 	// 视频发布时间
 	AwemePubTime string `protobuf:"bytes,6,opt,name=aweme_pub_time,json=awemePubTime,proto3" json:"aweme_pub_time,omitempty"`
+	// 视频分享URL
+	AwemeShareUrl string `protobuf:"bytes,39,opt,name=aweme_share_url,json=awemeShareUrl,proto3" json:"aweme_share_url,omitempty"`
+	// 视频详情URL
+	AwemeDetailUrl string `protobuf:"bytes,40,opt,name=aweme_detail_url,json=awemeDetailUrl,proto3" json:"aweme_detail_url,omitempty"`
 	// 博主ID
 	BloggerId int64 `protobuf:"varint,7,opt,name=blogger_id,json=bloggerId,proto3" json:"blogger_id,omitempty"`
 	// 播放量字符串
@@ -139,6 +143,20 @@ func (x *VideoDTO) GetAwemeCoverUrl() string {
 func (x *VideoDTO) GetAwemePubTime() string {
 	if x != nil {
 		return x.AwemePubTime
+	}
+	return ""
+}
+
+func (x *VideoDTO) GetAwemeShareUrl() string {
+	if x != nil {
+		return x.AwemeShareUrl
+	}
+	return ""
+}
+
+func (x *VideoDTO) GetAwemeDetailUrl() string {
+	if x != nil {
+		return x.AwemeDetailUrl
 	}
 	return ""
 }
@@ -468,7 +486,7 @@ var File_v1_video_proto protoreflect.FileDescriptor
 
 const file_v1_video_proto_rawDesc = "" +
 	"\n" +
-	"\x0ev1/video.proto\x1a\x1cgoogle/api/annotations.proto\x1a\rv1/page.proto\"\x97\x06\n" +
+	"\x0ev1/video.proto\x1a\x1cgoogle/api/annotations.proto\x1a\rv1/page.proto\"\xe9\x06\n" +
 	"\bVideoDTO\x12\x19\n" +
 	"\baweme_id\x18\x01 \x01(\tR\aawemeId\x12\x1d\n" +
 	"\n" +
@@ -478,7 +496,9 @@ const file_v1_video_proto_rawDesc = "" +
 	"\n" +
 	"aweme_desc\x18\x04 \x01(\tR\tawemeDesc\x12&\n" +
 	"\x0faweme_cover_url\x18\x05 \x01(\tR\rawemeCoverUrl\x12$\n" +
-	"\x0eaweme_pub_time\x18\x06 \x01(\tR\fawemePubTime\x12\x1d\n" +
+	"\x0eaweme_pub_time\x18\x06 \x01(\tR\fawemePubTime\x12&\n" +
+	"\x0faweme_share_url\x18' \x01(\tR\rawemeShareUrl\x12(\n" +
+	"\x10aweme_detail_url\x18( \x01(\tR\x0eawemeDetailUrl\x12\x1d\n" +
 	"\n" +
 	"blogger_id\x18\a \x01(\x03R\tbloggerId\x12$\n" +
 	"\x0eplay_count_str\x18\b \x01(\tR\fplayCountStr\x12$\n" +

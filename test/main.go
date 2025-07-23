@@ -15,9 +15,9 @@ import (
 
 func main() {
 	// 使用您正在测试的 awemeID
-	awemeID := "7528437837746769179"
-	cookie := "DYHHB_Session_2=4F390ED5B7E47D2FA5E7073C3BA4994F; il=2CD2D1033AE2554CF43E3DD40B5D08AC; mu=; body_collapsed=0"
-	baseURL := "http://121.40.63.195:8085"
+	awemeID := "7524567237513661754"
+	cookie := "PHPSESSID=tdn5sqcnh1ub2413v9n6ffdpgt; body_collapsed=0"
+	baseURL := "http://118.31.20.20:8080"
 
 	client := &http.Client{Timeout: 30 * time.Second}
 
@@ -58,13 +58,13 @@ func main() {
 
 	// --- 步骤4: 调用 updateState 接口 ---
 	log.Println("\n--- 步骤4: 调用 updateState 接口 ---")
-	dateCode := "20250718"
+	dateCode := "20250708"
 	updateStateURL := fmt.Sprintf("%s/api/v3/aweme/detail/detail/updateState?awemeId=%s&dateCode=%s&_=%d", baseURL, awemeID, dateCode, time.Now().UnixMilli())
 	injectLog(client, "调用updateState", updateStateURL, cookie)
 
 	// --- 步骤5: 请求最终的 trends 接口 ---
 	log.Println("\n--- 步骤5: 请求 trends 接口 ---")
-	trendsURL := fmt.Sprintf("%s/api/v3/aweme/detail/detail/trends?awemeId=%s&dateCode=%s&period=30&type=1&_=%d", baseURL, awemeID, dateCode, time.Now().UnixMilli())
+	trendsURL := fmt.Sprintf("%s/api/v3/aweme/detail/detail/trends?awemeId=%s&dateCode=%s&period=7&type=1&_=%d", baseURL, awemeID, dateCode, time.Now().UnixMilli())
 	log.Printf("请求 trends 接口: %s\n", trendsURL)
 
 	reqTrend, _ := http.NewRequest("GET", trendsURL, nil)
