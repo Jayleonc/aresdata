@@ -56,3 +56,11 @@ func parseValue(valStr string) int64 {
 
 	return int64(val * multiplier)
 }
+
+func ParseUnitStrToInt64(str string) int64 {
+	atoi, err := strconv.Atoi(str)
+	if err != nil {
+		return 0
+	}
+	return int64(atoi)
+}

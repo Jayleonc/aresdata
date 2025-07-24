@@ -5,7 +5,6 @@ import (
 	"time"
 )
 
-// -- 新增辅助函数，用于安全类型转换 --
 func toInt64(n json.Number) int64 {
 	i, _ := n.Int64()
 	return i

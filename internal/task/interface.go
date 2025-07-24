@@ -12,6 +12,7 @@ const (
 	FetchVideoSummary          = "fetch:video_summary"
 	ProcessVideoSummary        = "process:video_summary"
 	FetchVideoDetailsHeadless  = "fetch:video_detail_headless"
+	ProcessVideoDetailHeadless = "process:video_detail_headless" // <-- 新增此行
 	RemedyVideoDetailsHeadless = "remedy:video_details_headless"
 )
 

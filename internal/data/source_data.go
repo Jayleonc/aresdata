@@ -19,7 +19,9 @@ type SourceDataRepo interface {
 	UpdateStatusAndLog(ctx context.Context, id int64, status int32, log string) error
 	// FindPartiallyCollectedEntityIDs 查找在指定时间后，只采集了部分数据类型的实体ID列表。
 	FindPartiallyCollectedEntityIDs(ctx context.Context, since time.Time, dataTypes []string) ([]string, error)
-	ListAllCollectedEntityIDs(ctx context.Context, dataTypes []string) ([]string, error) // <-- 【新增】此行
+	ListAllCollectedEntityIDs(ctx context.Context, dataTypes []string) ([]string, error)
+	// FindLatestByTypeAndEntityID 根据类型和实体ID查找最新的源数据记录
+	FindLatestByTypeAndEntityID(ctx context.Context, dataType string, entityId string) (*SourceData, error)
 }
 
 // SourceData is the GORM model for storing raw data from various providers.
@@ -166,4 +168,17 @@ func (r *sourceDataRepo) ListAllCollectedEntityIDs(ctx context.Context, dataType
 		return nil, fmt.Errorf("获取所有已采集的实体ID失败: %w", err)
 	}
 	return entityIDs, nil
+}
+
+// FindLatestByTypeAndEntityID 根据类型和实体ID查找最新的源数据记录
+func (r *sourceDataRepo) FindLatestByTypeAndEntityID(ctx context.Context, dataType string, entityId string) (*SourceData, error) {
+	var sourceData SourceData
+	err := r.data.db.WithContext(ctx).
+		Where("data_type = ? AND entity_id = ?", dataType, entityId).
+		Order("id DESC"). // 按ID降序排列，确保拿到最新的记录
+		First(&sourceData).Error
+	if err != nil {
+		return nil, err // 如果没找到或出错，gorm会返回错误
+	}
+	return &sourceData, nil
 }

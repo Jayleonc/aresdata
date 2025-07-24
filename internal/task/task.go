@@ -14,6 +14,7 @@ var ProviderSet = wire.NewSet(
 	// 这个函数是关键，它告诉 wire 如何构建 []Task
 	NewFetchVideoDetailsHeadlessTask,
 	NewRemedyVideoDetailsHeadlessTask,
+	NewProcessVideoDetailHeadlessTask,
 	NewTaskSet,
 )
 
@@ -27,6 +28,7 @@ func NewTaskSet(
 	p6 *ProcessVideoSummaryTask,
 	p7 *FetchVideoDetailsHeadlessTask,
 	p8 *RemedyVideoDetailsHeadlessTask,
+	p9 *ProcessVideoDetailHeadlessTask,
 ) []Task {
-	return []Task{p1, p2, p3, p4, p5, p6, p7, p8}
+	return []Task{p1, p2, p3, p4, p5, p6, p7, p8, p9}
 }
