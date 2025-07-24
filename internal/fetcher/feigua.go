@@ -63,7 +63,7 @@ func (f *FeiguaFetcher) FetchVideoRank(ctx context.Context, period, datecode str
 	params.Set("datecode", datecode)
 	params.Set("sort", "14")
 	params.Set("rankType", "14")
-	params.Set("priceRange", "0-500")
+	params.Set("priceRange", "1-500") // 1 到 500 元，可以过滤掉那些薅羊毛之类的视频
 	params.Set("_", fmt.Sprintf("%d", time.Now().UnixMilli()))
 
 	fullUrl := apiEndpoint + "?" + params.Encode()
@@ -74,7 +74,6 @@ func (f *FeiguaFetcher) FetchVideoRank(ctx context.Context, period, datecode str
 		return "", nil, fmt.Errorf("failed to create request: %w", err)
 	}
 
-	// --- 这部分代码现在是健壮的，无需修改 ---
 	cookieStr, err := f.getCookieString()
 	if err != nil {
 		f.log.WithContext(ctx).Warnf("加载 Cookie 失败: %v", err)
