@@ -72,6 +72,8 @@ message VideoDTO {
 	int32 aweme_type = 20;
 	// 汇总更新时间
 	string summary_updated_at = 21;
+	// 绑定的商品ID
+	string goods_id = 22;
 }
 
 // 分页查询视频请求

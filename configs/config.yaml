@@ -20,11 +20,10 @@ data:
   #    throttle_min_wait_ms: 15000  # 80秒
   #    throttle_max_wait_ms: 20000 # 90秒
   feigua:
-    baseUrl: "http://121.40.63.195:8085"
-    cookie: "il=2CD2D1033AE2554CF43E3DD40B5D08AC; mu=; DYHHB_Session_2=4F390ED5B7E47D2FA5E7073C3BA4994F; body_collapsed=1"
-    throttle_min_wait_ms: 35000  # 80秒
-    throttle_start_wait_ms: 20000
-    throttle_max_wait_ms: 40000 # 90秒
+    baseUrl: "http://118.178.59.83:8085"
+    throttle_min_wait_ms: 5000  # 80秒
+    throttle_start_wait_ms: 10000
+    throttle_max_wait_ms: 10000 # 90秒
 
 
     cookie_path: "configs/assets/cookies.json" # 【方案一】指向存放 cookie 的文件路径

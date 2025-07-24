@@ -3,6 +3,7 @@ package data
 import (
 	v1 "aresdata/api/v1"
 	"context"
+	"fmt"
 	"time"
 
 	"gorm.io/gorm/clause"
@@ -35,6 +36,7 @@ type Video struct {
 	GoodsCountStr      string `gorm:"size:255"`
 	GpmStr             string `gorm:"size:255;column:gpm_str"` // 明确指定列名
 	AwemeType          int32  `gorm:"type:integer"`
+	GoodsId            string `gorm:"size:255;comment:商品ID"`
 
 	// --- 详情信息 (来自下钻采集) 暂时用不上 ---
 	DyTagsJSON          string `gorm:"type:text"`
@@ -54,14 +56,17 @@ func (Video) TableName() string {
 }
 
 type VideoRepo interface {
+	FindVideosByIDs(ctx context.Context, awemeIDs []string, limit int) ([]*VideoForCollection, error)
 	UpsertFromRank(ctx context.Context, video *Video) error
 	UpdateFromSummary(ctx context.Context, video *Video) error
 	FindVideosNeedingSummaryUpdate(ctx context.Context, limit int) ([]*VideoForSummary, error)
 	ListPage(ctx context.Context, page, size int, query, sortBy string, sortOrder v1.SortOrder) ([]*Video, int64, error)
 	Get(ctx context.Context, awemeId string) (*Video, error)
 	FindRecentActiveAwemeIds(ctx context.Context, days int) ([]string, error)
-	FindVideosNeedingTrendUpdate(ctx context.Context, limit int) ([]*VideoForTrend, error)
+	//FindVideosNeedingTrendUpdate(ctx context.Context, limit int) ([]*VideoForTrend, error)
+	FindVideosForDetailsCollection(ctx context.Context, limit int) ([]*VideoForCollection, error)
 	UpdateTrendTimestamp(ctx context.Context, awemeId string) error
+	FindVideosExcludingIDs(ctx context.Context, ids []string, limit int) ([]*VideoForCollection, error)
 }
 
 type videoRepo struct {
@@ -77,7 +82,7 @@ func (r *videoRepo) UpsertFromRank(ctx context.Context, video *Video) error {
 	return r.db.WithContext(ctx).Clauses(clause.OnConflict{
 		Columns: []clause.Column{{Name: "aweme_id"}},
 		DoUpdates: clause.AssignmentColumns([]string{
-			"updated_at", "aweme_desc", "aweme_cover_url", "aweme_pub_time", "blogger_id",
+			"updated_at", "aweme_desc", "aweme_cover_url", "aweme_pub_time", "blogger_id", "goods_id",
 		}),
 	}).Create(video).Error
 }
@@ -163,6 +168,9 @@ func CopyVideoToDTO(v *Video) *v1.VideoDTO {
 	if v.SummaryUpdatedAt != nil {
 		dto.SummaryUpdatedAt = v.SummaryUpdatedAt.Format(time.RFC3339)
 	}
+
+	dto.GoodsId = v.GoodsId
+
 	return dto
 }
 
@@ -180,10 +188,53 @@ func (r *videoRepo) Get(ctx context.Context, awemeId string) (*Video, error) {
 }
 
 // FindRecentActiveAwemeIds 查找最近几天内有更新的视频ID
+// FindVideosByIDs 根据提供的 aweme_id 列表，批量查询视频信息。
+func (r *videoRepo) FindVideosByIDs(ctx context.Context, awemeIDs []string, limit int) ([]*VideoForCollection, error) {
+	if len(awemeIDs) == 0 {
+		return nil, nil // 如果传入空的ID列表，直接返回空结果，避免数据库查询
+	}
+
+	var results []*VideoForCollection
+
+	// 使用 IN 子句进行批量查询
+	err := r.db.WithContext(ctx).Model(&Video{}).
+		Select("aweme_id", "aweme_pub_time", "aweme_detail_url").
+		Where("aweme_id IN ?", awemeIDs).
+		Order("updated_at ASC").
+		Limit(limit).
+		Find(&results).Error
+
+	if err != nil {
+		return nil, fmt.Errorf("根据ID列表查询视频失败: %w", err)
+	}
+	return results, nil
+}
+
 func (r *videoRepo) FindRecentActiveAwemeIds(ctx context.Context, days int) ([]string, error) {
 	var awemeIds []string
 	err := r.db.WithContext(ctx).Model(&Video{}).
 		Where("updated_at >= ?", time.Now().AddDate(0, 0, -days)).
 		Pluck("aweme_id", &awemeIds).Error
 	return awemeIds, err
+}
+
+// FindVideosExcludingIDs 查找排除指定ID列表之外的视频，用于首次采集。
+func (r *videoRepo) FindVideosExcludingIDs(ctx context.Context, ids []string, limit int) ([]*VideoForCollection, error) {
+	var results []*VideoForCollection
+
+	db := r.db.WithContext(ctx).Model(&Video{}).
+		Select("aweme_id", "aweme_pub_time", "aweme_detail_url")
+
+	if len(ids) > 0 {
+		db = db.Where("aweme_id NOT IN ?", ids)
+	}
+
+	err := db.Order("aweme_pub_time DESC").
+		Limit(limit).
+		Find(&results).Error
+
+	if err != nil {
+		return nil, fmt.Errorf("查询排除ID列表的视频失败: %w", err)
+	}
+	return results, nil
 }

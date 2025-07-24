@@ -11,6 +11,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"strings"
 	"time"
 
 	"github.com/go-kratos/kratos/v2/log"
@@ -73,6 +74,15 @@ func (f *FeiguaFetcher) FetchVideoRank(ctx context.Context, period, datecode str
 		return "", nil, fmt.Errorf("failed to create request: %w", err)
 	}
 
+	// --- 这部分代码现在是健壮的，无需修改 ---
+	cookieStr, err := f.getCookieString()
+	if err != nil {
+		f.log.WithContext(ctx).Warnf("加载 Cookie 失败: %v", err)
+	}
+	if cookieStr != "" {
+		req.Header.Set("Cookie", cookieStr)
+	}
+
 	// 设置 Headers
 	//req.Header.Set("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36")
 	//req.Header.Set("Cookie", f.conf.Feigua.Cookie)
@@ -84,10 +94,9 @@ func (f *FeiguaFetcher) FetchVideoRank(ctx context.Context, period, datecode str
 	//req.Header.Set("Connection", "keep-alive")
 
 	req.Header.Set("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36")
-	req.Header.Set("Cookie", f.conf.Feigua.Cookie)
+	//req.Header.Set("Cookie", f.conf.Feigua.Cookie)
 	//req.Header.Set("Referer", f.conf.Feigua.BaseUrl+"/app/")
 	//req.Header.Set("Origin", f.conf.Feigua.BaseUrl)
-	req.Header.Set("Host", "121.40.63.195:8085")
 	req.Header.Set("Accept", "application/json, text/plain, */*")
 	req.Header.Set("Accept-Language", "zh-CN,zh;q=0.9,en-US;q=0.8,en;q=0.7")
 	req.Header.Set("Accept-Encoding", "gzip, deflate")
@@ -169,7 +178,14 @@ func (f *FeiguaFetcher) FetchVideoTrend(ctx context.Context, awemeID string, awe
 	}
 
 	req.Header.Set("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36")
-	req.Header.Set("Cookie", f.conf.Feigua.Cookie)
+	cookieStr, err := f.getCookieString()
+	if err != nil {
+		f.log.WithContext(ctx).Warnf("加载 Cookie 失败: %v", err)
+	}
+	if cookieStr != "" {
+		req.Header.Set("Cookie", cookieStr)
+
+	}
 	//req.Header.Set("Referer", f.conf.Feigua.BaseUrl+"/app/")
 	//req.Header.Set("Origin", f.conf.Feigua.BaseUrl)
 	//req.Header.Set("Host", "118.178.59.83:8085")
@@ -242,7 +258,13 @@ func (f *FeiguaFetcher) FetchVideoSummary(ctx context.Context, awemeID, dateCode
 	}
 
 	req.Header.Set("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36")
-	req.Header.Set("Cookie", f.conf.Feigua.Cookie)
+	cookieStr, err := f.getCookieString()
+	if err != nil {
+		f.log.WithContext(ctx).Warnf("加载 Cookie 失败: %v", err)
+	}
+	if cookieStr != "" {
+		req.Header.Set("Cookie", cookieStr)
+	}
 
 	headersJson, _ := json.Marshal(req.Header)
 	meta := &RequestMetadata{
@@ -268,4 +290,55 @@ func (f *FeiguaFetcher) FetchVideoSummary(ctx context.Context, awemeID, dateCode
 	}
 
 	return string(body), meta, nil
+}
+
+// cookiePair 定义了一个临时的结构体，用于解析JSON Cookie数组中的关键字段
+type cookiePair struct {
+	Name  string `json:"name"`
+	Value string `json:"value"`
+}
+
+// getCookieString 封装了从配置中获取并格式化cookie的逻辑。
+// 它会读取JSON格式的cookie，并将其转换为HTTP头部所需的 "key=value;" 字符串格式。
+func (f *FeiguaFetcher) getCookieString() (string, error) {
+	var cookieBytes []byte
+	var err error
+
+	// 步骤 1: 加载原始Cookie数据 (逻辑与之前一致)
+	if f.conf.Feigua.CookieContent != "" {
+		f.log.Info("从配置 `cookie_content` 中加载 Cookie...")
+		cookieBytes = []byte(f.conf.Feigua.CookieContent)
+	} else if f.conf.Feigua.CookiePath != "" {
+		f.log.Infof("从文件 %s 中加载 Cookie...", f.conf.Feigua.CookiePath)
+		cookieBytes, err = ioutil.ReadFile(f.conf.Feigua.CookiePath)
+		if err != nil {
+			return "", fmt.Errorf("读取 cookie 文件失败 %s: %w", f.conf.Feigua.CookiePath, err)
+		}
+	} else {
+		f.log.Warn("未配置 Cookie 路径或内容，将以无身份状态访问")
+		return "", nil
+	}
+
+	// 步骤 2: 解析JSON数据
+	var cookies []cookiePair
+	if err := json.Unmarshal(cookieBytes, &cookies); err != nil {
+		// 增加一个兼容性分支：如果解析JSON失败，则假定它就是旧的字符串格式
+		f.log.Warnf("解析 Cookie JSON 失败: %v。将尝试作为普通字符串处理。", err)
+		return string(cookieBytes), nil
+	}
+
+	if len(cookies) == 0 {
+		return "", fmt.Errorf("Cookie JSON 文件解析成功，但内容为空")
+	}
+
+	// 步骤 3: 将解析后的cookie转换为 "key=value;" 格式的字符串
+	var cookieParts []string
+	for _, c := range cookies {
+		cookieParts = append(cookieParts, c.Name+"="+c.Value)
+	}
+
+	formattedCookie := strings.Join(cookieParts, "; ")
+	f.log.Infof("成功将 %d 个 Cookie 格式化为 HTTP 请求头字符串", len(cookies))
+
+	return formattedCookie, nil
 }

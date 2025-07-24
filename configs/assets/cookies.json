@@ -1,6 +1,6 @@
 [
   {
-    "domain": "118.31.20.20",
+    "domain": "118.178.59.83",
     "hostOnly": true,
     "httpOnly": false,
     "name": "body_collapsed",
@@ -13,16 +13,43 @@
     "id": 1
   },
   {
-    "domain": "118.31.20.20",
+    "domain": "118.178.59.83",
     "hostOnly": true,
-    "httpOnly": false,
-    "name": "PHPSESSID",
+    "httpOnly": true,
+    "name": "DYHHB_Session_2",
     "path": "/",
     "sameSite": "unspecified",
     "secure": false,
     "session": true,
     "storeId": "0",
-    "value": "tdn5sqcnh1ub2413v9n6ffdpgt",
+    "value": "1A3B249AB589667594FF66D05114E1C0",
     "id": 2
+  },
+  {
+    "domain": "118.178.59.83",
+    "expirationDate": 1753409366.611751,
+    "hostOnly": true,
+    "httpOnly": false,
+    "name": "il",
+    "path": "/",
+    "sameSite": "unspecified",
+    "secure": false,
+    "session": false,
+    "storeId": "0",
+    "value": "E1DDF136C1919CE0E627EE1EAC4EA5E6",
+    "id": 3
+  },
+  {
+    "domain": "118.178.59.83",
+    "hostOnly": true,
+    "httpOnly": false,
+    "name": "mu",
+    "path": "/",
+    "sameSite": "unspecified",
+    "secure": false,
+    "session": true,
+    "storeId": "0",
+    "value": "",
+    "id": 4
   }
 ]

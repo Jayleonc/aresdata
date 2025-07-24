@@ -46,7 +46,6 @@ message Data {
 // Data_Feigua 结构体，包含 BaseUrl 和 Cookie 字段
 message Feigua {
 	string base_url = 1;
-	string cookie = 2;
 
 	// 节流配置
 	int32 throttle_min_wait_ms = 3; // 最小等待时间（毫秒）

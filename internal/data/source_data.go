@@ -3,6 +3,7 @@ package data
 import (
 	v1 "aresdata/api/v1"
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/go-kratos/kratos/v2/log"
@@ -16,6 +17,9 @@ type SourceDataRepo interface {
 	FindUnprocessed(ctx context.Context, dataType string) ([]*v1.SourceData, error)
 	// UpdateStatusAndLog 原子性地更新状态和处理日志
 	UpdateStatusAndLog(ctx context.Context, id int64, status int32, log string) error
+	// FindPartiallyCollectedEntityIDs 查找在指定时间后，只采集了部分数据类型的实体ID列表。
+	FindPartiallyCollectedEntityIDs(ctx context.Context, since time.Time, dataTypes []string) ([]string, error)
+	ListAllCollectedEntityIDs(ctx context.Context, dataTypes []string) ([]string, error) // <-- 【新增】此行
 }
 
 // SourceData is the GORM model for storing raw data from various providers.
@@ -58,7 +62,7 @@ func NewSourceDataRepo(data *Data, logger log.Logger) SourceDataRepo {
 }
 
 // Save 实现了biz层的接口，负责将数据写入数据库
-func copySourceDataToDO(s *v1.SourceData) *SourceData {
+func CopySourceDataToDO(s *v1.SourceData) *SourceData {
 	var fetchedAt time.Time
 	return &SourceData{
 		ID:             s.Id,
@@ -78,7 +82,7 @@ func copySourceDataToDO(s *v1.SourceData) *SourceData {
 	}
 }
 
-func copySourceDataToDTO(s *SourceData) *v1.SourceData {
+func CopySourceDataToDTO(s *SourceData) *v1.SourceData {
 	return &v1.SourceData{
 		Id:             s.ID,
 		ProviderName:   s.ProviderName,
@@ -98,11 +102,11 @@ func copySourceDataToDTO(s *SourceData) *v1.SourceData {
 }
 
 func (r *sourceDataRepo) Save(ctx context.Context, s *v1.SourceData) (*v1.SourceData, error) {
-	model := copySourceDataToDO(s)
+	model := CopySourceDataToDO(s)
 	if err := r.data.db.WithContext(ctx).Create(model).Error; err != nil {
 		return nil, err
 	}
-	return copySourceDataToDTO(model), nil
+	return CopySourceDataToDTO(model), nil
 }
 
 // UpdateStatus 更新原始数据的处理状态
@@ -118,6 +122,24 @@ func (r *sourceDataRepo) UpdateStatusAndLog(ctx context.Context, id int64, statu
 	}).Error
 }
 
+// FindPartiallyCollectedEntityIDs 查找在指定时间后，只采集了部分数据类型的实体ID列表。
+func (r *sourceDataRepo) FindPartiallyCollectedEntityIDs(ctx context.Context, since time.Time, dataTypes []string) ([]string, error) {
+	var entityIDs []string
+
+	// 使用GORM的查询构建器，而不是原生SQL
+	err := r.data.db.WithContext(ctx).Model(&SourceData{}).
+		Select("entity_id").
+		Where("fetched_at > ? AND data_type IN ?", since, dataTypes).
+		Group("entity_id").
+		Having("COUNT(DISTINCT data_type) = 1").
+		Pluck("entity_id", &entityIDs).Error
+
+	if err != nil {
+		return nil, fmt.Errorf("查询部分采集的实体ID失败: %w", err)
+	}
+	return entityIDs, nil
+}
+
 // FindUnprocessed 查找所有未处理的数据
 func (r *sourceDataRepo) FindUnprocessed(ctx context.Context, dataType string) ([]*v1.SourceData, error) {
 	var models []*SourceData
@@ -126,7 +148,22 @@ func (r *sourceDataRepo) FindUnprocessed(ctx context.Context, dataType string) (
 	}
 	var result []*v1.SourceData
 	for _, m := range models {
-		result = append(result, copySourceDataToDTO(m))
+		result = append(result, CopySourceDataToDTO(m))
 	}
 	return result, nil
+}
+
+// ListAllCollectedEntityIDs 获取所有被 headless 服务采集过的视频ID列表。
+func (r *sourceDataRepo) ListAllCollectedEntityIDs(ctx context.Context, dataTypes []string) ([]string, error) {
+	var entityIDs []string
+
+	err := r.data.db.WithContext(ctx).Model(&SourceData{}).
+		Select("DISTINCT entity_id").
+		Where("data_type IN ?", dataTypes).
+		Pluck("entity_id", &entityIDs).Error
+
+	if err != nil {
+		return nil, fmt.Errorf("获取所有已采集的实体ID失败: %w", err)
+	}
+	return entityIDs, nil
 }

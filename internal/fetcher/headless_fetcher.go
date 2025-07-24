@@ -1,36 +1,25 @@
 // internal/fetcher/headless_fetcher.go
-
 package fetcher
 
 import (
 	"aresdata/internal/conf"
 	"context"
-	"encoding/json"
 	"fmt"
-	"github.com/chromedp/cdproto/cdp"
-	"io/ioutil"
+	"github.com/go-kratos/kratos/v2/log"
 	"strings"
+	"sync"
 	"time"
 
+	"github.com/chromedp/cdproto/cdp"
 	"github.com/chromedp/cdproto/network"
 	"github.com/chromedp/chromedp"
-	"github.com/go-kratos/kratos/v2/log"
 )
 
-// HeadlessRequestMetadata 存储由无头浏览器发出的请求的元数据
-type HeadlessRequestMetadata struct {
-	Method string `json:"method"`
-	URL    string `json:"url"`
-	Params string `json:"params"`
-}
-
-// HeadlessFetcher 使用 chromedp 实现无头浏览器采集
 type HeadlessFetcher struct {
 	log *log.Helper
 	cfg *conf.Feigua
 }
 
-// NewHeadlessFetcher 创建一个新的 HeadlessFetcher 实例
 func NewHeadlessFetcher(c *conf.Data, logger log.Logger) *HeadlessFetcher {
 	return &HeadlessFetcher{
 		log: log.NewHelper(logger),
@@ -38,122 +27,104 @@ func NewHeadlessFetcher(c *conf.Data, logger log.Logger) *HeadlessFetcher {
 	}
 }
 
-// FetchTrend 先访问入口页面，执行JS生成签名URL，再导航并拦截API响应
-func (f *HeadlessFetcher) FetchTrend(ctx context.Context, awemeID string, dateCode string) (string, *HeadlessRequestMetadata, error) {
-	f.log.Infof("开始为视频 %s 执行【无头浏览器方案】采集...", awemeID)
+// CaptureAPIs 在一个给定的标签页(ctx)中，导航到entryURL，并监听捕获所有指定的targetAPIPaths。
+// 【最终稳定版】: 使用单一监听器关联两个事件，彻底解决并发竞争问题。
+func (f *HeadlessFetcher) CaptureAPIs(ctx context.Context, entryURL string, targetAPIPaths []string) (map[string]string, error) {
+	f.log.Infof("启动API捕获任务. 入口URL: %s, 目标API数量: %d", entryURL, len(targetAPIPaths))
 
-	// --- 1. 定义入口页面URL和元数据 ---
-	entryPageURL := f.cfg.BaseUrl + "/app/#/"
-	f.log.Infof("步骤1: 导航至入口页面: %s", entryPageURL)
+	results := make(map[string]string)
+	var mu sync.Mutex
+	var wg sync.WaitGroup
+	wg.Add(len(targetAPIPaths))
 
-	apiEndpoint := f.cfg.BaseUrl + "/api/v3/aweme/detail/detail/trends"
-	query := fmt.Sprintf("awemeId=%s&dateCode=%s&period=30&type=1", awemeID, dateCode)
-	meta := &HeadlessRequestMetadata{
-		Method: "GET",
-		URL:    apiEndpoint,
-		Params: query,
-	}
+	// a-t-com/aresdata 请求ID与API路径的映射，用于关联事件
+	requestMap := make(map[network.RequestID]string)
+	var requestMapMu sync.Mutex
 
-	// 设置 Allocator 选项
-	opts := []chromedp.ExecAllocatorOption{
-		chromedp.NoFirstRun,
-		chromedp.NoDefaultBrowserCheck,
-		chromedp.Flag("headless", f.cfg.Headless),
-		chromedp.UserAgent(f.cfg.UserAgent),
-	}
-	if f.cfg.Proxy != "" {
-		opts = append(opts, chromedp.ProxyServer(f.cfg.Proxy))
-	}
-	allocCtx, cancel := chromedp.NewExecAllocator(context.Background(), opts...)
-	defer cancel()
-
-	bopts := []chromedp.BrowserOption{
-		chromedp.WithBrowserErrorf(func(s string, a ...interface{}) {}),
-	}
-	taskCtx, cancel := chromedp.NewContext(allocCtx, chromedp.WithBrowserOption(bopts...), chromedp.WithLogf(f.log.Infof))
-	taskCtx, cancel = context.WithTimeout(taskCtx, time.Duration(f.cfg.Timeout)*time.Second)
-	defer cancel()
-
-	// --- 2. 设置网络请求监听 ---
-	responseChan := make(chan string, 1)
-	listenCtx, cancelListen := context.WithCancel(taskCtx)
+	// 确保监听器在函数返回时被正确取消
+	listenCtx, cancelListen := context.WithCancel(ctx)
 	defer cancelListen()
+
+	// --- 【核心】只启动一个监听器 ---
 	chromedp.ListenTarget(listenCtx, func(ev interface{}) {
-		go func() {
-			respEvent, ok := ev.(*network.EventResponseReceived)
-			if !ok || !strings.Contains(respEvent.Response.URL, "/api/v3/aweme/detail/detail/trends") {
-				return
+		// 分发事件到不同的处理器
+		switch ev := ev.(type) {
+
+		// 步骤1：当收到响应头时，进行标记
+		case *network.EventResponseReceived:
+			for _, apiPath := range targetAPIPaths {
+				if strings.Contains(ev.Response.URL, apiPath) {
+					requestMapMu.Lock()
+					// 标记这个请求ID是我们感兴趣的
+					requestMap[ev.RequestID] = apiPath
+					requestMapMu.Unlock()
+					f.log.Infof("已标记目标API请求: %s (ID: %s)", apiPath, ev.RequestID)
+				}
 			}
-			f.log.Infof("已拦截到目标API的响应: %s", respEvent.Response.URL)
-			body, err := network.GetResponseBody(respEvent.RequestID).Do(cdp.WithExecutor(listenCtx, chromedp.FromContext(listenCtx).Target))
-			if err != nil {
-				f.log.Errorf("获取响应体失败: %v", err)
-				return
+
+		// 步骤2：当请求完全加载后，进行处理
+		case *network.EventLoadingFinished:
+			requestMapMu.Lock()
+			// 检查这个完成的请求是否在我们标记的列表里
+			apiPath, ok := requestMap[ev.RequestID]
+			requestMapMu.Unlock()
+
+			if ok {
+				// 如果是，启动goroutine去获取响应体
+				go func(reqID network.RequestID, path string) {
+					// 由于此事件在数据完全加载后触发，所以GetResponseBody是100%安全的
+					bodyBytes, err := network.GetResponseBody(reqID).Do(cdp.WithExecutor(listenCtx, chromedp.FromContext(listenCtx).Target))
+					if err != nil {
+						f.log.Errorf("获取API [%s] 响应体失败: %v", path, err)
+						wg.Done() // 即使失败也要标记完成，防止死锁
+						return
+					}
+
+					// 使用互斥锁安全地写入结果
+					mu.Lock()
+					if _, exists := results[path]; !exists {
+						results[path] = string(bodyBytes)
+						f.log.Infof("成功捕获并获取API响应: %s", path)
+						wg.Done()
+					}
+					mu.Unlock()
+
+					// 清理已处理的请求，防止重复处理（可选但推荐）
+					requestMapMu.Lock()
+					delete(requestMap, reqID)
+					requestMapMu.Unlock()
+
+				}(ev.RequestID, apiPath)
 			}
-			select {
-			case responseChan <- string(body):
-				f.log.Info("已成功获取响应体并发送至channel")
-			default:
-			}
-			cancelListen()
-		}()
+		}
 	})
 
-	// --- 3. 执行终极任务流程 ---
-	var signedURL string
-	err := chromedp.Run(taskCtx,
-		f.loadCookiesAction(),
-		chromedp.Navigate(entryPageURL),
-		chromedp.Evaluate(fmt.Sprintf(`window.getSign('%s')`, awemeID), &signedURL),
-		chromedp.ActionFunc(func(ctx context.Context) error {
-			if signedURL == "" {
-				return fmt.Errorf("通过JS获取签名URL失败，返回为空")
-			}
-			f.log.Infof("步骤4: 已通过JS获取到签名URL，准备导航: %s", signedURL)
-			return chromedp.Navigate(signedURL).Do(ctx)
-		}),
+	// --- 后续的导航和等待逻辑保持不变 ---
+	err := chromedp.Run(ctx,
+		network.Enable(),
+		chromedp.Navigate(entryURL),
+		chromedp.Sleep(time.Duration(f.cfg.ThrottleStartWaitMs)*time.Millisecond),
 	)
-
 	if err != nil {
-		return "", meta, fmt.Errorf("chromedp.Run 执行失败: %w", err)
+		return nil, fmt.Errorf("chromedp导航失败: %w", err)
 	}
 
-	// --- 4. 等待channel返回结果或超时 ---
+	waitChan := make(chan struct{})
+	go func() {
+		wg.Wait()
+		close(waitChan)
+	}()
+
 	select {
-	case <-taskCtx.Done():
-		return "", meta, fmt.Errorf("任务被取消或超时 (awemeID: %s)", awemeID)
-	case rawContent := <-responseChan:
-		f.log.Infof("已成功采集视频 %s 的完整趋势数据", awemeID)
-		return rawContent, meta, nil
+	case <-waitChan:
+		f.log.Info("所有目标API均已成功捕获。")
+		return results, nil
+	case <-ctx.Done():
+		mu.Lock()
+		defer mu.Unlock()
+		if len(results) < len(targetAPIPaths) {
+			return results, fmt.Errorf("任务超时，仅捕获了 %d/%d 个API", len(results), len(targetAPIPaths))
+		}
+		return results, nil
 	}
-}
-
-// loadCookiesAction 是一个辅助函数，用于加载 Cookies (代码不变)
-func (f *HeadlessFetcher) loadCookiesAction() chromedp.Action {
-	return chromedp.ActionFunc(func(ctx context.Context) error {
-		var cookiesBytes []byte
-		var err error
-
-		if f.cfg.CookiePath != "" {
-			cookiesBytes, err = ioutil.ReadFile(f.cfg.CookiePath)
-			if err != nil {
-				return fmt.Errorf("读取 cookie 文件失败 %s: %w", f.cfg.CookiePath, err)
-			}
-			f.log.Infof("从文件 %s 中加载 Cookies...", f.cfg.CookiePath)
-		} else {
-			f.log.Warn("未配置 Cookie 路径，将以无身份状态访问")
-			return nil
-		}
-
-		processedCookiesStr := strings.ReplaceAll(string(cookiesBytes), `"sameSite": "unspecified"`, `"sameSite": "Lax"`)
-		cookiesBytes = []byte(processedCookiesStr)
-
-		cookies := []*network.CookieParam{}
-		if err := json.Unmarshal(cookiesBytes, &cookies); err != nil {
-			return fmt.Errorf("解析 cookie JSON 失败: %w", err)
-		}
-
-		f.log.Infof("成功解析 %d 个 Cookies，准备设置...", len(cookies))
-		return network.SetCookies(cookies).Do(ctx)
-	})
 }

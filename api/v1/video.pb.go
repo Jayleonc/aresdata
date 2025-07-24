@@ -71,8 +71,10 @@ type VideoDTO struct {
 	AwemeType int32 `protobuf:"varint,20,opt,name=aweme_type,json=awemeType,proto3" json:"aweme_type,omitempty"`
 	// 汇总更新时间
 	SummaryUpdatedAt string `protobuf:"bytes,21,opt,name=summary_updated_at,json=summaryUpdatedAt,proto3" json:"summary_updated_at,omitempty"`
-	unknownFields    protoimpl.UnknownFields
-	sizeCache        protoimpl.SizeCache
+	// 绑定的商品ID
+	GoodsId       string `protobuf:"bytes,22,opt,name=goods_id,json=goodsId,proto3" json:"goods_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *VideoDTO) Reset() {
@@ -262,6 +264,13 @@ func (x *VideoDTO) GetAwemeType() int32 {
 func (x *VideoDTO) GetSummaryUpdatedAt() string {
 	if x != nil {
 		return x.SummaryUpdatedAt
+	}
+	return ""
+}
+
+func (x *VideoDTO) GetGoodsId() string {
+	if x != nil {
+		return x.GoodsId
 	}
 	return ""
 }
@@ -486,7 +495,7 @@ var File_v1_video_proto protoreflect.FileDescriptor
 
 const file_v1_video_proto_rawDesc = "" +
 	"\n" +
-	"\x0ev1/video.proto\x1a\x1cgoogle/api/annotations.proto\x1a\rv1/page.proto\"\xe9\x06\n" +
+	"\x0ev1/video.proto\x1a\x1cgoogle/api/annotations.proto\x1a\rv1/page.proto\"\x84\a\n" +
 	"\bVideoDTO\x12\x19\n" +
 	"\baweme_id\x18\x01 \x01(\tR\aawemeId\x12\x1d\n" +
 	"\n" +
@@ -516,7 +525,8 @@ const file_v1_video_proto_rawDesc = "" +
 	"\agpm_str\x18\x13 \x01(\tR\x06gpmStr\x12\x1d\n" +
 	"\n" +
 	"aweme_type\x18\x14 \x01(\x05R\tawemeType\x12,\n" +
-	"\x12summary_updated_at\x18\x15 \x01(\tR\x10summaryUpdatedAt\"\x8f\x01\n" +
+	"\x12summary_updated_at\x18\x15 \x01(\tR\x10summaryUpdatedAt\x12\x19\n" +
+	"\bgoods_id\x18\x16 \x01(\tR\agoodsId\"\x8f\x01\n" +
 	"\x11ListVideosRequest\x12 \n" +
 	"\x04page\x18\x01 \x01(\v2\f.PageRequestR\x04page\x12\x14\n" +
 	"\x05query\x18\x02 \x01(\tR\x05query\x12\x17\n" +

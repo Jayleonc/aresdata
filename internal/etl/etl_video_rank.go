@@ -200,11 +200,14 @@ func (p *VideoRankProcessor) Process(ctx context.Context, rawData *v1.SourceData
 		// --- 维度表更新 ---
 		// 1. 更新/插入 Video 维度表 (修复：使用为Rank定制的Upsert)
 		videoDim := &data.Video{
-			AwemeId:       item.AwemeDto.AwemeId,
-			AwemeDesc:     item.AwemeDto.AwemeDesc,
-			AwemeCoverUrl: item.AwemeDto.AwemeCoverUrl,
-			AwemePubTime:  pubTime,
-			BloggerId:     toInt64(item.BloggerDto.BloggerId),
+			AwemeId:        item.AwemeDto.AwemeId,
+			AwemeDesc:      item.AwemeDto.AwemeDesc,
+			AwemeCoverUrl:  item.AwemeDto.AwemeCoverUrl,
+			AwemePubTime:   pubTime,
+			BloggerId:      toInt64(item.BloggerDto.BloggerId),
+			AwemeDetailUrl: item.AwemeDto.AwemeDetailUrl,
+			AwemeShareUrl:  item.AwemeDto.AwemeShareUrl,
+			GoodsId:        item.GoodsDto.Gid,
 		}
 		if err := p.videoRepo.UpsertFromRank(ctx, videoDim); err != nil {
 			p.log.Errorf("failed to upsert video dimension for awemeId %s: %v", videoDim.AwemeId, err)

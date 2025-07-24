@@ -497,6 +497,9 @@ components:
                 summaryUpdatedAt:
                     type: string
                     description: 汇总更新时间
+                goodsId:
+                    type: string
+                    description: 绑定的商品ID
             description: 视频维度数据 DTO
         .VideoQueryRequest:
             type: object

@@ -29,8 +29,8 @@ func (t *FetchVideoRankTask) Run(ctx context.Context, args ...string) error {
 	datecode := time.Now().AddDate(0, 0, -2).Format("20060102")
 	t.log.WithContext(ctx).Infof("开始采集日榜数据，日期: %s", datecode)
 	// 定义分批次采集的参数
-	totalBatches := 1 // 采集20次
-	pageSize := 10    // 每次50条，最多只能拿50条，写100也是50条
+	totalBatches := 10 // 采集20次
+	pageSize := 50     // 每次50条，最多只能拿50条，写100也是50条
 	var finalErr error
 
 	for i := 1; i <= totalBatches; i++ {

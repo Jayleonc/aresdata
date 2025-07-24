@@ -198,7 +198,6 @@ func (x *Data) GetFeigua() *Feigua {
 type Feigua struct {
 	state   protoimpl.MessageState `protogen:"open.v1"`
 	BaseUrl string                 `protobuf:"bytes,1,opt,name=base_url,json=baseUrl,proto3" json:"base_url,omitempty"`
-	Cookie  string                 `protobuf:"bytes,2,opt,name=cookie,proto3" json:"cookie,omitempty"`
 	// 节流配置
 	ThrottleMinWaitMs   int32  `protobuf:"varint,3,opt,name=throttle_min_wait_ms,json=throttleMinWaitMs,proto3" json:"throttle_min_wait_ms,omitempty"`       // 最小等待时间（毫秒）
 	ThrottleMaxWaitMs   int32  `protobuf:"varint,4,opt,name=throttle_max_wait_ms,json=throttleMaxWaitMs,proto3" json:"throttle_max_wait_ms,omitempty"`       // 最大等待时间（毫秒）
@@ -247,13 +246,6 @@ func (*Feigua) Descriptor() ([]byte, []int) {
 func (x *Feigua) GetBaseUrl() string {
 	if x != nil {
 		return x.BaseUrl
-	}
-	return ""
-}
-
-func (x *Feigua) GetCookie() string {
-	if x != nil {
-		return x.Cookie
 	}
 	return ""
 }
@@ -647,10 +639,9 @@ const file_conf_conf_proto_rawDesc = "" +
 	"\x04addr\x18\x02 \x01(\tR\x04addr\x12\x1a\n" +
 	"\bpassword\x18\x03 \x01(\tR\bpassword\x12<\n" +
 	"\fread_timeout\x18\x04 \x01(\v2\x19.google.protobuf.DurationR\vreadTimeout\x12>\n" +
-	"\rwrite_timeout\x18\x05 \x01(\v2\x19.google.protobuf.DurationR\fwriteTimeout\"\x85\x03\n" +
+	"\rwrite_timeout\x18\x05 \x01(\v2\x19.google.protobuf.DurationR\fwriteTimeout\"\xed\x02\n" +
 	"\x06Feigua\x12\x19\n" +
-	"\bbase_url\x18\x01 \x01(\tR\abaseUrl\x12\x16\n" +
-	"\x06cookie\x18\x02 \x01(\tR\x06cookie\x12/\n" +
+	"\bbase_url\x18\x01 \x01(\tR\abaseUrl\x12/\n" +
 	"\x14throttle_min_wait_ms\x18\x03 \x01(\x05R\x11throttleMinWaitMs\x12/\n" +
 	"\x14throttle_max_wait_ms\x18\x04 \x01(\x05R\x11throttleMaxWaitMs\x12\x1f\n" +
 	"\vcookie_path\x18\x05 \x01(\tR\n" +

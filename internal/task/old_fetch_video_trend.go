@@ -46,7 +46,7 @@ func (t *FetchVideoTrendTask) Run(ctx context.Context, args ...string) error {
 	//}
 
 	// 1. 通过 VideoUsecase 获取需要更新趋势的视频列表
-	videos, err := t.videoUC.GetVideosNeedingTrendUpdate(ctx, limit)
+	videos, err := t.videoUC.GetVideosByTimeWindow(ctx, limit)
 	if err != nil {
 		t.log.Errorf("获取待更新趋势视频列表失败: %v", err)
 		return err
