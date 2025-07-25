@@ -9,6 +9,14 @@ import (
 	"github.com/go-kratos/kratos/v2/log"
 )
 
+// 在这里定义data_type，全部地方都适用这里的定义
+const (
+	DataTypeVideoRank            = "video_rank"
+	DataTypeVideoDetail          = "video_detail"
+	DataTypeVideoSummaryHeadless = "video_summary_headless"
+	DataTypeVideoTrendHeadless   = "video_trend_headless"
+)
+
 // SourceDataRepo 是Biz层依赖的Data层接口，由 data/source_data.go 实现
 type SourceDataRepo interface {
 	Save(context.Context, *v1.SourceData) (*v1.SourceData, error)

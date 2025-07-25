@@ -7,10 +7,14 @@ import (
 // ProviderSet is task providers.
 // 我们在这里将所有独立的 Task 构造函数和集合函数打包在一起
 var ProviderSet = wire.NewSet(
+	NewHumanizedScheduler,
+	NewHeadlessTaskProvider,
 	NewTaskSet,
 	NewFetchVideoRankTask,
 	NewFetchVideoTrendTask,
 	NewFetchVideoDetailsHeadlessTask,
+	NewProcessVideoRankTask,
+	NewProcessVideoDetailHeadlessTask,
 	NewRemedyVideoDetailsHeadlessTask,
 )
 
@@ -19,7 +23,9 @@ func NewTaskSet(
 	p1 *FetchVideoRankTask,
 	p3 *FetchVideoTrendTask,
 	p7 *FetchVideoDetailsHeadlessTask,
+	p10 *ProcessVideoRankTask,
+	p11 *ProcessVideoDetailHeadlessTask,
 	p8 *RemedyVideoDetailsHeadlessTask,
 ) []Task {
-	return []Task{p1, p3, p7, p8}
+	return []Task{p1, p3, p7, p8, p10, p11}
 }

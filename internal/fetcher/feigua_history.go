@@ -17,14 +17,6 @@ import (
 	"github.com/go-kratos/kratos/v2/log"
 )
 
-// RequestMetadata 存储每次API请求的元数据
-type RequestMetadata struct {
-	Method  string
-	URL     string
-	Params  string // JSON string of params
-	Headers string // JSON string of headers
-}
-
 // FeiguaFetcher 负责与飞瓜API进行交互
 type FeiguaFetcher struct {
 	log         *log.Helper
@@ -225,64 +217,6 @@ func (f *FeiguaFetcher) FetchVideoTrend(ctx context.Context, awemeID string, awe
 	body, err := io.ReadAll(reader) // 注意：这里从新的 reader 读取
 	if err != nil {
 		return "", meta, fmt.Errorf("failed to read response body for video trend: %w", err)
-	}
-
-	return string(body), meta, nil
-}
-
-// FetchVideoSummary 采集单个视频的总览数据
-func (f *FeiguaFetcher) FetchVideoSummary(ctx context.Context, awemeID, dateCode string) (string, *RequestMetadata, error) {
-	apiEndpoint := f.cfg.BaseUrl + "/api/v3/aweme/detail/detail/sumData"
-
-	params := url.Values{}
-	params.Set("awemeId", awemeID)
-	params.Set("dateCode", dateCode) // 使用传入的 dateCode，通常是发布日期
-	params.Set("_", fmt.Sprintf("%d", time.Now().UnixMilli()))
-
-	fullUrl := apiEndpoint + "?" + params.Encode()
-	f.log.WithContext(ctx).Infof("Requesting Summary URL: %s", fullUrl)
-
-	req, err := http.NewRequestWithContext(ctx, "GET", fullUrl, nil)
-	if err != nil {
-		return "", nil, fmt.Errorf("failed to create request for video summary: %w", err)
-	}
-
-	req.Header.Set("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36")
-	account := f.accountPool.GetNextAccount()
-	if account != nil && len(account.Cookies) > 0 {
-		var sb strings.Builder
-		for i, cookie := range account.Cookies {
-			if i > 0 {
-				sb.WriteString("; ")
-			}
-			sb.WriteString(cookie.Name)
-			sb.WriteString("=")
-			sb.WriteString(cookie.Value)
-		}
-		req.Header.Set("Cookie", sb.String())
-	}
-
-	headersJson, _ := json.Marshal(req.Header)
-	meta := &RequestMetadata{
-		Method:  "GET",
-		URL:     apiEndpoint,
-		Params:  params.Encode(),
-		Headers: string(headersJson),
-	}
-
-	resp, err := f.client.Do(req)
-	if err != nil {
-		return "", meta, fmt.Errorf("failed to execute request for video summary: %w", err)
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return "", meta, fmt.Errorf("bad status code for video summary: %d", resp.StatusCode)
-	}
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return "", meta, fmt.Errorf("failed to read response body for video summary: %w", err)
 	}
 
 	return string(body), meta, nil

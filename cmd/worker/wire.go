@@ -6,6 +6,7 @@ package main
 import (
 	"github.com/Jayleonc/aresdata/internal/conf"
 	"github.com/Jayleonc/aresdata/internal/data"
+	"github.com/Jayleonc/aresdata/internal/etl"
 	"github.com/Jayleonc/aresdata/internal/fetcher"
 	"github.com/Jayleonc/aresdata/internal/task"
 	"github.com/go-kratos/kratos/v2/log"
@@ -17,6 +18,7 @@ func wireApp(*conf.Bootstrap, *conf.Data, log.Logger) (*App, func(), error) {
 	panic(wire.Build(
 		data.ProviderSet,
 		fetcher.ProviderSet,
+		etl.ProviderSet,
 		task.ProviderSet,
 		newApp,
 	))

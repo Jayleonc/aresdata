@@ -14,7 +14,6 @@ import (
 // ProviderSet is data providers.
 var ProviderSet = wire.NewSet(
 	NewData,
-	NewDataSourcesProvider,
 	NewRedisClient,
 	NewSourceDataRepo,
 	NewVideoRankRepo,
@@ -26,9 +25,10 @@ var ProviderSet = wire.NewSet(
 
 // Data .
 type Data struct {
-	db     *gorm.DB
-	redis  redis.Cmdable
-	Logger *log.Helper
+	db          *gorm.DB
+	redis       redis.Cmdable
+	Logger      *log.Helper
+	DataSources []*conf.DataSource // assume this exists
 }
 
 // NewData .
@@ -80,9 +80,4 @@ func NewRedisClient(conf *conf.Data) redis.Cmdable {
 		ReadTimeout:  conf.Redis.ReadTimeout.AsDuration(),
 		WriteTimeout: conf.Redis.WriteTimeout.AsDuration(),
 	})
-}
-
-// NewDataSourcesProvider creates a provider that extracts the datasource configurations.
-func NewDataSourcesProvider(c *conf.Data) []*conf.DataSource {
-	return c.Datasources
 }

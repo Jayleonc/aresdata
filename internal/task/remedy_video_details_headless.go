@@ -6,34 +6,28 @@ import (
 	"fmt"
 	"strings"
 
-	v1 "github.com/Jayleonc/aresdata/api/v1"
-	"github.com/Jayleonc/aresdata/internal/data"
-	"github.com/Jayleonc/aresdata/internal/fetcher"
 	"github.com/go-kratos/kratos/v2/log"
 )
 
 // RemedyVideoDetailsHeadlessTask 负责修复部分采集失败的视频详情数据
 type RemedyVideoDetailsHeadlessTask struct {
 	log            *log.Helper
+	provider       *HeadlessTaskProvider // 只依赖 Provider
 	videoRepo      data.VideoRepo
-	fetcherManager *fetcher.FetcherManager
 	dataSourceName string
-	headlessUC     *fetcher.HeadlessUsecase // 新增，负责采集和存储
 }
 
 // NewRemedyVideoDetailsHeadlessTask 创建一个新的修复任务实例
 func NewRemedyVideoDetailsHeadlessTask(
 	logger log.Logger,
 	videoRepo data.VideoRepo,
-	fetcherManager *fetcher.FetcherManager,
-	headlessUC *fetcher.HeadlessUsecase, // 新增参数
+	provider *HeadlessTaskProvider, // 只注入 Provider
 ) *RemedyVideoDetailsHeadlessTask {
 	return &RemedyVideoDetailsHeadlessTask{
 		log:            log.NewHelper(log.With(logger, "module", "task.remedy_video_details_headless")),
+		provider:       provider,
 		videoRepo:      videoRepo,
-		fetcherManager: fetcherManager,
 		dataSourceName: "your_headless_data_source_name_here",
-		headlessUC:     headlessUC, // 注入 usecase
 	}
 }
 
@@ -53,21 +47,14 @@ func (t *RemedyVideoDetailsHeadlessTask) Run(ctx context.Context, args ...string
 		hoursAgo = 24
 		limit    = 10
 	)
-	videos, err := t.videoRepo.FindPartiallyCollectedVideos(ctx, hoursAgo, limit)
+	videos, err := t.provider.HeadlessUC.GetPartiallyCollectedVideos(ctx, hoursAgo, limit)
 	if err != nil {
-		t.log.Errorf("Failed to find partially collected videos: %v", err)
+		t.log.Errorf("Usecase 查找待修复视频失败: %v", err)
 		return err
 	}
 
 	for _, video := range videos {
-		// 将 data.VideoForCollection 转换为 v1.VideoDTO
-		videoDTO := &v1.VideoDTO{
-			AwemeId:        video.AwemeId,
-			AwemePubTime:   video.AwemePubTime.Format("2006-01-02 15:04:05"),
-			AwemeDetailUrl: video.AwemeDetailUrl,
-		}
-
-		if err := t.headlessUC.FetchAndStoreVideoDetails(ctx, videoDTO); err != nil {
+		if err := t.provider.HeadlessUC.FetchAndStoreVideoDetails(ctx, video); err != nil {
 			t.log.Errorf("Failed to fetch and store video details for video %s from source %s: %v", video.AwemeId, t.dataSourceName, err)
 		} else {
 			t.log.Infof("Successfully remedied video details for video %s from source %s", video.AwemeId, t.dataSourceName)

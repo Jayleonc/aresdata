@@ -2,7 +2,6 @@ package biz
 
 import (
 	"context"
-	"fmt"
 	v1 "github.com/Jayleonc/aresdata/api/v1"
 	"github.com/Jayleonc/aresdata/internal/data"
 )
@@ -43,22 +42,6 @@ func (uc *VideoUsecase) ListVideos(ctx context.Context, page, size int, query, s
 	return dtos, total, nil
 }
 
-// GetVideosForFirstCollection 获取用于首次详情采集的视频列表。
-// 【最终正确版】：在Biz层进行逻辑编排，实现跨Repo查询。
-func (uc *VideoUsecase) GetVideosForFirstCollection(ctx context.Context, limit int) ([]*data.VideoForCollection, error) {
-	dataTypes := []string{"video_trend_headless", "video_summary_headless"}
-
-	// 步骤1：调用 sourceDataRepo，拿到所有“已碰过”的视频ID黑名单
-	excludeIDs, err := uc.sourceDataRepo.ListAllCollectedEntityIDs(ctx, dataTypes)
-	if err != nil {
-		return nil, fmt.Errorf("获取已采集ID黑名单失败: %w", err)
-	}
-
-	// 步骤2：调用 videoRepo，获取所有不在黑名单里的视频
-	return uc.repo.FindVideosExcludingIDs(ctx, excludeIDs, limit)
-}
-
-// 【命名修正】
 // GetVideosByTimeWindow 获取在24小时时间窗口内需要更新的视频 (旧逻辑)
 func (uc *VideoUsecase) GetVideosByTimeWindow(ctx context.Context, limit int) ([]*data.VideoForCollection, error) {
 	// 这个方法现在清晰地指向了那个基于时间的查询逻辑，如果其他地方仍有依赖，也不会出错

@@ -6,6 +6,7 @@ import (
 	"github.com/go-kratos/kratos/v2/log"
 	"net/http"
 	"os"
+	"strings"
 	"sync"
 )
 
@@ -40,7 +41,7 @@ func NewAccountPool(cookiePaths []string, logger log.Logger) (*AccountPool, erro
 
 		var cookies []*http.Cookie
 		if err := json.Unmarshal(data, &cookies); err != nil {
-			helper.Errorf("failed to unmarshal cookie file %s: %v", path, err)
+			helper.Errorf("未能解开 cookie 文件 %s: %v", path, err)
 			continue
 		}
 
@@ -70,4 +71,22 @@ func (p *AccountPool) GetNextAccount() *Account {
 	p.log.Infof("派发账户: %s", account.path)
 	p.current = (p.current + 1) % len(p.accounts)
 	return account
+}
+
+// GetCookieHeader 将账户中的 Cookie 切片格式化为单个 HTTP 请求头字符串。
+func (a *Account) GetCookieHeader() string {
+	if a == nil || len(a.Cookies) == 0 {
+		return ""
+	}
+
+	var sb strings.Builder
+	for i, cookie := range a.Cookies {
+		if i > 0 {
+			sb.WriteString("; ")
+		}
+		sb.WriteString(cookie.Name)
+		sb.WriteString("=")
+		sb.WriteString(cookie.Value)
+	}
+	return sb.String()
 }

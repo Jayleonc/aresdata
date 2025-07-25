@@ -6,7 +6,6 @@ import (
 	v1 "github.com/Jayleonc/aresdata/api/v1"
 	"time"
 
-	"google.golang.org/protobuf/types/known/timestamppb"
 	"gorm.io/gorm/clause"
 )
 
@@ -70,8 +69,7 @@ type VideoRepo interface {
 	FindVideosForDetailsCollection(ctx context.Context, limit int) ([]*VideoForCollection, error)
 	UpdateTrendTimestamp(ctx context.Context, awemeId string) error
 	FindVideosExcludingIDs(ctx context.Context, ids []string, limit int) ([]*VideoForCollection, error)
-	FindPartiallyCollectedVideos(ctx context.Context, hoursAgo int, limit int) ([]*VideoForCollection, error)
-}
+} // End of VideoRepo interface
 
 type videoRepo struct {
 	*Data
@@ -246,22 +244,4 @@ func (r *videoRepo) SaveSourceData(ctx context.Context, d *v1.SourceData) (*v1.S
 
 func (r *videoRepo) FindVideosExcludingIDs(ctx context.Context, ids []string, limit int) ([]*VideoForCollection, error) {
 	panic("implement me")
-}
-
-func (r *videoRepo) FindPartiallyCollectedVideos(ctx context.Context, hoursAgo int, limit int) ([]*VideoForCollection, error) {
-	since := time.Now().Add(-time.Duration(hoursAgo) * time.Hour)
-
-	var videos []*VideoForCollection
-	db := r.Data.db.WithContext(ctx).Model(&Video{}).
-		Where("updated_at < ? AND collection_status = ?", since, v1.CollectionStatus_PARTIALLY_COLLECTED)
-
-	err := db.Order("aweme_pub_time DESC").
-		Limit(limit).
-		Find(&videos).Error
-
-	if err != nil {
-		return nil, err
-	}
-
-	return videos, nil
 }

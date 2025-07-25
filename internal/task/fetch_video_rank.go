@@ -2,21 +2,21 @@ package task
 
 import (
 	"context"
-	"github.com/Jayleonc/aresdata/internal/fetcher"
+
 	"github.com/go-kratos/kratos/v2/log"
 	"time"
 )
 
 type FetchVideoRankTask struct {
-	uc  *fetcher.HttpUsecase
-	log *log.Helper // 正确的日志字段类型
+	log      *log.Helper
+	provider *HttpTaskProvider // 只依赖 Provider
 	// 未来可以注入 TaskLogRepo 来记录任务审计日志
 }
 
-func NewFetchVideoRankTask(uc *fetcher.HttpUsecase, logger log.Logger) *FetchVideoRankTask {
+func NewFetchVideoRankTask(logger log.Logger, provider *HttpTaskProvider) *FetchVideoRankTask {
 	return &FetchVideoRankTask{
-		uc:  uc,
-		log: log.NewHelper(log.With(logger, "module", "task/fetch-video-rank")),
+		log:      log.NewHelper(log.With(logger, "module", "task/fetch-video-rank")),
+		provider: provider,
 	}
 }
 
@@ -26,7 +26,7 @@ func (t *FetchVideoRankTask) Name() string {
 
 func (t *FetchVideoRankTask) Run(ctx context.Context, args ...string) error {
 	// 默认采集前天的数据，例如今天是22号，则采集20号的数据
-	datecode := time.Now().AddDate(0, 0, -2).Format("20060102")
+	datecode := time.Now().AddDate(0, 0, -3).Format("20060102")
 	t.log.WithContext(ctx).Infof("开始采集日榜数据，日期: %s", datecode)
 	// 定义分批次采集的参数
 	totalBatches := 10 // 采集20次
@@ -37,7 +37,7 @@ func (t *FetchVideoRankTask) Run(ctx context.Context, args ...string) error {
 		pageIndex := i
 		t.log.WithContext(ctx).Infof("正在采集第 %d/%d 批数据...", pageIndex, totalBatches)
 
-		_, err := t.uc.FetchAndStoreVideoRank(ctx, "day", datecode, pageIndex, pageSize)
+		_, err := t.provider.HttpUC.FetchAndStoreVideoRank(ctx, "day", datecode, pageIndex, pageSize)
 		if err != nil {
 			t.log.WithContext(ctx).Errorf("采集日榜数据失败，日期: %s，批次: %d，错误: %v", datecode, pageIndex, err)
 			finalErr = err // 记录遇到的最后一个错误
