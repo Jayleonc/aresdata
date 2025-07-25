@@ -4,7 +4,7 @@ import (
 	"flag"
 	"os"
 
-	"aresdata/internal/conf"
+	"github.com/Jayleonc/aresdata/internal/conf"
 
 	"github.com/go-kratos/kratos/v2"
 	"github.com/go-kratos/kratos/v2/config"

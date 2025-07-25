@@ -1,9 +1,9 @@
 package data
 
 import (
-	v1 "aresdata/api/v1"
-	"aresdata/pkg/utils"
 	"context"
+	v1 "github.com/Jayleonc/aresdata/api/v1"
+	"github.com/Jayleonc/aresdata/pkg/utils"
 	"strings"
 	"time"
 )

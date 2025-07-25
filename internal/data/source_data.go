@@ -1,9 +1,9 @@
 package data
 
 import (
-	v1 "aresdata/api/v1"
 	"context"
 	"fmt"
+	v1 "github.com/Jayleonc/aresdata/api/v1"
 	"time"
 
 	"github.com/go-kratos/kratos/v2/log"

@@ -3,7 +3,7 @@ package fetcher
 
 //
 //import (
-//	"aresdata/internal/conf"
+//	"github.com/Jayleonc/aresdata/internal/conf"
 //	"context"
 //	"encoding/json"
 //	"fmt"

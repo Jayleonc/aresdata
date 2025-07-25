@@ -5,7 +5,7 @@ import (
 	"gorm.io/gorm/clause"
 	"time"
 
-	"aresdata/api/v1"
+	"github.com/Jayleonc/aresdata/api/v1"
 )
 
 // Product 商品维度表

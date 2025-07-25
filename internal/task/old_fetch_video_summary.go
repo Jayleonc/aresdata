@@ -1,20 +1,21 @@
 package task
 
 import (
-	"aresdata/internal/biz"
-	"aresdata/internal/data"
 	"context"
-	"github.com/go-kratos/kratos/v2/log"
 	"time"
+
+	"github.com/Jayleonc/aresdata/internal/data"
+	"github.com/Jayleonc/aresdata/internal/fetcher"
+	"github.com/go-kratos/kratos/v2/log"
 )
 
 type FetchVideoSummaryTask struct {
-	fetcherUC *biz.FetcherUsecase
+	fetcherUC *fetcher.HttpUsecase
 	videoRepo data.VideoRepo
 	log       *log.Helper
 }
 
-func NewFetchVideoSummaryTask(fetcherUC *biz.FetcherUsecase, videoRepo data.VideoRepo, logger log.Logger) *FetchVideoSummaryTask {
+func NewFetchVideoSummaryTask(fetcherUC *fetcher.HttpUsecase, videoRepo data.VideoRepo, logger log.Logger) *FetchVideoSummaryTask {
 	return &FetchVideoSummaryTask{
 		fetcherUC: fetcherUC,
 		videoRepo: videoRepo,

@@ -1,4 +1,4 @@
-module aresdata
+module github.com/Jayleonc/aresdata
 
 go 1.24
 

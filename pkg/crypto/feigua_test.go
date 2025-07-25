@@ -6,7 +6,7 @@ import (
 )
 
 func TestFeiguaDecrypt(t *testing.T) {
-	rnd := "638888766653375257"
+	rnd := "638889768667540304"
 
 	// 1. 读取 data.txt
 	ciphertext, err := os.ReadFile("data.txt")
@@ -21,7 +21,7 @@ func TestFeiguaDecrypt(t *testing.T) {
 	}
 
 	// 3. 写入 result.json
-	if err := os.WriteFile("resu13131t12.json", []byte(decrypted), 0644); err != nil {
+	if err := os.WriteFile("loadAwemeAnalysisChartData.json", []byte(decrypted), 0644); err != nil {
 		t.Fatalf("写入 result.json 失败: %v", err)
 	}
 

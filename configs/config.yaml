@@ -19,20 +19,30 @@ data:
   #    cookie: "PHPSESSID=tdn5sqcnh1ub2413v9n6ffdpgt; body_collapsed=0"
   #    throttle_min_wait_ms: 15000  # 80秒
   #    throttle_max_wait_ms: 20000 # 90秒
-  feigua:
-    baseUrl: "http://121.40.63.195:8085"
-    throttle_min_wait_ms: 5000  # 80秒
-    throttle_start_wait_ms: 10000
-    throttle_max_wait_ms: 10000 # 90秒
-
-
-    cookie_path: "configs/assets/cookies.json" # 【方案一】指向存放 cookie 的文件路径
-    user_agent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36" # 推荐使用一个真实的 User-Agent
-    # --- ↓↓↓↓ 新增的无头浏览器核心配置 ↓↓↓↓ ---
-    headless: true # 【关键】true 表示在服务器上静默运行，false 会在本地弹出浏览器界面，用于调试
-    proxy: "" # 如果需要代理，在这里填写，例如 "http://user:pass@host:port"
-    timeout: 90 # 【关键】单个采集任务的超时时间（秒），无头浏览器启动和加载慢，建议不少于60秒
-    cookie_content: "" # 【方案二】如果不想用文件，可以直接把 Cookie 的 JSON 内容粘贴在这里（注意YAML的转义），优先级高于 cookie_path
+  datasources:
+    - name: "feigua_headless_primary"
+      type: "headless"
+      base_url: "http://121.40.63.195:8085/"
+      timeout: 180
+      headless: true
+      proxy: ""
+      account_pool:
+        - "configs/assets/feigua_account_1.json"
+        - "configs/assets/feigua_account_2.json"
+    - name: "other_site_headless" 
+      type: "headless"
+      base_url: "http://another-website.com/api/" 
+      timeout: 120
+      headless: true
+      proxy: ""
+      account_pool:
+        - "configs/assets/other_site_account_1.json"
+    - name: "feigua_http_backup"
+      type: "http"
+      base_url: "http://121.40.63.195:8080/"
+      timeout: 30
+      account_pool:
+        - "configs/assets/http_account_1.json"
 
 # 在文件末尾追加
 job:

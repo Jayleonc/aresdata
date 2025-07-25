@@ -1,32 +1,22 @@
 package task
 
 import (
-	"aresdata/internal/biz"
-	"aresdata/internal/conf"
-	"aresdata/internal/data" // <-- Import the data package
 	"context"
-	"encoding/json"
-	"fmt"
-	"io/ioutil"
 	"math/rand"
-	"strings"
 	"time"
 
-	"github.com/chromedp/cdproto/network"
-	"github.com/chromedp/chromedp"
+	v1 "github.com/Jayleonc/aresdata/api/v1"
+	"github.com/Jayleonc/aresdata/internal/data"
+	"github.com/Jayleonc/aresdata/internal/fetcher"
 	"github.com/go-kratos/kratos/v2/log"
 )
 
 // =======================================================================================
-// 1. 定义可复用的“拟人化调度器” (Humanized Scheduler)
+// 1. 定义可复用的"拟人化调度器" (Humanized Scheduler)
 // =======================================================================================
 
 // HumanizedSchedulerConfig 用于配置拟人化行为的所有参数
 type HumanizedSchedulerConfig struct {
-	// 工作周期：一个任务实例总共执行多少个批次
-	MinBatchesPerCycle int
-	MaxBatchesPerCycle int
-
 	// 批次大小：每个批次处理多少个视频
 	MinBatchSize int
 	MaxBatchSize int
@@ -80,217 +70,124 @@ func (s *HumanizedScheduler) GetNextBatchSize() int {
 	return rand.Intn(s.config.MaxBatchSize-s.config.MinBatchSize+1) + s.config.MinBatchSize
 }
 
-// GetTotalBatchesForCycle 获取本次工作周期总共要执行多少个批次
-func (s *HumanizedScheduler) GetTotalBatchesForCycle() int {
-	return rand.Intn(s.config.MaxBatchesPerCycle-s.config.MinBatchesPerCycle+1) + s.config.MinBatchesPerCycle
-}
-
 // =======================================================================================
-// 2. 将调度器应用到我们的主任务中
+// 2. 重新定义的任务结构体
 // =======================================================================================
 
-// FetchVideoDetailsHeadlessTask 结构体保持不变
+// FetchVideoDetailsHeadlessTask 重新定义的任务结构体，只包含必要字段
 type FetchVideoDetailsHeadlessTask struct {
-	log        *log.Helper
-	videoUC    *biz.VideoUsecase
-	headlessUC *biz.HeadlessUsecase
-	cfg        *conf.Feigua
+	log            *log.Helper
+	videoRepo      data.VideoRepo
+	fetcherManager *fetcher.FetcherManager
+	scheduler      *HumanizedScheduler      // 引入我们之前定义的拟人化调度器
+	headlessUC     *fetcher.HeadlessUsecase // 新增，负责采集和存储
 }
 
-// NewFetchVideoDetailsHeadlessTask 构造函数保持不变
+// NewFetchVideoDetailsHeadlessTask 重写构造函数，初始化所有字段
 func NewFetchVideoDetailsHeadlessTask(
 	logger log.Logger,
-	videoUC *biz.VideoUsecase,
-	headlessUC *biz.HeadlessUsecase,
-	cfg *conf.Data,
+	videoRepo data.VideoRepo,
+	fetcherManager *fetcher.FetcherManager,
+	headlessUC *fetcher.HeadlessUsecase, // 新增参数
 ) *FetchVideoDetailsHeadlessTask {
+	// 创建拟人化调度器配置
+	schedulerConfig := &HumanizedSchedulerConfig{
+		MinBatchSize:     3,   // 每批次最少处理3个视频
+		MaxBatchSize:     10,  // 每批次最多处理10个视频
+		MinShortBreakSec: 60,  // 视频间最少休息2秒
+		MaxShortBreakSec: 80,  // 视频间最多休息8秒
+		MinLongBreakSec:  120, // 批次间最少休息30秒
+		MaxLongBreakSec:  300, // 批次间最多休息120秒
+	}
+
+	logHelper := log.NewHelper(log.With(logger, "module", "task.fetch_video_details_headless"))
+	scheduler := NewHumanizedScheduler(logHelper, schedulerConfig)
+
 	return &FetchVideoDetailsHeadlessTask{
-		log:        log.NewHelper(log.With(logger, "module", "task.fetch_video_details_headless")),
-		videoUC:    videoUC,
-		headlessUC: headlessUC,
-		cfg:        cfg.GetFeigua(),
+		log:            logHelper,
+		videoRepo:      videoRepo,
+		fetcherManager: fetcherManager,
+		scheduler:      scheduler,
+		headlessUC:     headlessUC, // 注入 usecase
 	}
 }
 
-// Name 方法保持不变
+// Name 返回任务名称
 func (t *FetchVideoDetailsHeadlessTask) Name() string {
 	return FetchVideoDetailsHeadless
 }
 
-// Run 方法被完全重构，以使用新的调度器
+// Run 彻底重写的主要执行方法，实现双层调度循环
 func (t *FetchVideoDetailsHeadlessTask) Run(ctx context.Context, args ...string) error {
 	t.log.Info("开始执行 [无头浏览器-视频详情] 拟人化采集任务...")
 
-	// --- 1. 浏览器启动和预热 (逻辑不变) ---
-	var opts []chromedp.ExecAllocatorOption
-	baseOpts := []chromedp.ExecAllocatorOption{
-		chromedp.UserAgent(t.cfg.UserAgent),
-		chromedp.WindowSize(1920, 1080),
-		chromedp.NoFirstRun,
-		chromedp.NoDefaultBrowserCheck,
+	// 1. 获取所有数据源
+	headlessSources := t.fetcherManager.GetDataSourceNames()
+	if len(headlessSources) == 0 {
+		t.log.Error("未找到任何数据源")
+		return nil
 	}
-	if t.cfg.Headless {
-		t.log.Info("当前为 Headless 模式，正在应用反检测参数...")
-		opts = append(chromedp.DefaultExecAllocatorOptions[:],
-			chromedp.Flag("headless", "new"),
-			chromedp.Flag("disable-blink-features", "AutomationControlled"),
-			chromedp.Flag("disable-extensions", true),
-			chromedp.Flag("disable-gpu", true),
-			chromedp.Flag("disable-infobars", true),
-			chromedp.Flag("disable-popup-blocking", true),
-			chromedp.Flag("disable-dev-shm-usage", true),
-			chromedp.Flag("no-sandbox", true),
-			chromedp.Flag("disable-setuid-sandbox", true),
-		)
-		opts = append(opts, baseOpts...)
-	} else {
-		t.log.Info("当前为非 Headless 模式，将启动浏览器界面...")
-		opts = append(chromedp.DefaultExecAllocatorOptions[:],
-			chromedp.Flag("headless", false),
-		)
-		opts = append(opts, baseOpts...)
-	}
-	if t.cfg.Proxy != "" {
-		opts = append(opts, chromedp.ProxyServer(t.cfg.Proxy))
-	}
-	allocCtx, cancel := chromedp.NewExecAllocator(context.Background(), opts...)
-	defer cancel()
-	browserCtx, cancel := chromedp.NewContext(
-		allocCtx,
-		chromedp.WithLogf(t.newChromedpLogger()),
-	)
-	browserCtx, cancel = context.WithTimeout(browserCtx, 60*time.Minute)
-	defer cancel()
-	if err := chromedp.Run(browserCtx, t.loadCookiesAction()); err != nil {
-		t.log.Errorf("浏览器启动时加载Cookie失败: %v", err)
-		return err
-	}
-	t.log.Info("浏览器实例已启动，并成功加载初始Cookie。")
-	t.log.Info("正在执行浏览器预热...")
-	warmupCtx, cancelWarmup := context.WithTimeout(browserCtx, 30*time.Second)
-	defer cancelWarmup()
-	if err := chromedp.Run(warmupCtx,
-		chromedp.Navigate(t.cfg.BaseUrl),
-		chromedp.Sleep(5*time.Second),
-	); err != nil {
-		t.log.Warnf("浏览器预热失败（不影响主流程）: %v", err)
-	} else {
-		t.log.Info("浏览器预热成功，准备开始执行主任务。")
-	}
+	t.log.Infof("发现 %d 个数据源: %v", len(headlessSources), headlessSources)
 
-	// --- 2. 初始化我们的“拟人化调度器” ---
-	schedulerConfig := &HumanizedSchedulerConfig{
-		MinBatchesPerCycle: 3,   // 每次任务最少跑3个批次
-		MaxBatchesPerCycle: 5,   // 最多跑5个批次
-		MinBatchSize:       8,   // 每批次最少拿8个视频
-		MaxBatchSize:       22,  // 最多拿22个
-		MinShortBreakSec:   35,  // 单个视频处理完，最少等35秒
-		MaxShortBreakSec:   180, // 最多等3分钟
-		MinLongBreakSec:    300, // 单批次处理完，最少等5分钟
-		MaxLongBreakSec:    900, // 最多等15分钟
-	}
-	scheduler := NewHumanizedScheduler(t.log, schedulerConfig)
-	totalBatches := scheduler.GetTotalBatchesForCycle()
-	t.log.Infof("本次工作周期计划执行 %d 个批次。", totalBatches)
+	// 2. 主循环 (无限循环)
+	for {
+		// 3. 外层循环 (数据源轮换)
+		for _, datasourceName := range headlessSources {
+			t.log.Infof("======> 开始处理数据源: [%s] <======", datasourceName)
 
-	// --- 3. 【核心改造】全新的、基于调度器的工作循环 ---
-	for batchNum := 1; batchNum <= totalBatches; batchNum++ {
-		t.log.Infof("开始处理第 %d / %d 批次...", batchNum, totalBatches)
+			// 4. 内层循环 (批次处理)
+			for {
+				// 4.1 使用 scheduler.GetNextBatchSize() 获取本批次的视频数量
+				batchSize := t.scheduler.GetNextBatchSize()
+				t.log.Infof("数据源 [%s] 开始处理批次，大小: %d", datasourceName, batchSize)
 
-		// 3.1 获取一个随机大小的批次
-		batchSize := scheduler.GetNextBatchSize()
-		videos, err := t.videoUC.GetVideosForFirstCollection(ctx, batchSize)
-		if err != nil {
-			t.log.Errorf("获取第 %d 批次视频列表失败: %v", batchNum, err)
-			continue // 本批次失败，休息一下，然后尝试下一批
-		}
-		if len(videos) == 0 {
-			t.log.Info("没有需要进行首次采集的视频了，任务提前结束。")
-			break // 数据库里没新视频了，直接结束整个任务
-		}
-		t.log.Infof("获取到 %d 个需要进行首次采集的视频", len(videos))
-
-		// 3.2 打乱处理顺序
-		scheduler.ShuffleVideos(videos)
-
-		// 3.3 遍历处理本批次的视频
-		for _, v := range videos {
-			if v.AwemeDetailUrl == "" {
-				t.log.Warnf("视频 %s 的 AwemeDetailUrl 为空，跳过采集", v.AwemeId)
-				continue
-			}
-			dateCode := v.AwemePubTime.Format("20060102")
-
-			// 使用我们已有的重试逻辑来增加单次任务的成功率
-			var taskErr error
-			maxRetries := 2
-			for attempt := 0; attempt <= maxRetries; attempt++ {
-				taskErr = t.headlessUC.FetchAndStoreVideoDetails(browserCtx, v.AwemeDetailUrl, v.AwemeId, dateCode)
-				if taskErr == nil {
-					break
+				// 4.2 调用 videoRepo 从数据库中获取相应数量的待采集视频
+				videos, err := t.videoRepo.FindVideosForDetailsCollection(ctx, batchSize)
+				if err != nil {
+					t.log.Errorf("从数据库获取待采集视频失败: %v", err)
+					time.Sleep(30 * time.Second) // 数据库查询失败，等待一段时间再试
+					continue
 				}
-				t.log.Errorf("视频 %s 第 %d 次尝试失败: %v", v.AwemeId, attempt, taskErr)
-				// 可以在重试前加入一个短暂的固定等待
-				if attempt < maxRetries {
-					time.Sleep(5 * time.Second)
+
+				// 4.3 如果获取不到视频，则表明已无待采数据，可以 break 内层循环
+				if len(videos) == 0 {
+					t.log.Info("数据库中已没有待采集的视频，结束当前数据源的批次处理")
+					break // 跳出内层循环，切换到下一个数据源
 				}
+
+				// 4.4 使用 scheduler.ShuffleVideos() 打乱视频处理顺序
+				t.scheduler.ShuffleVideos(videos)
+
+				// 4.5 遍历本批次的视频列表，对每一个视频，调用 headlessUC.FetchAndStoreVideoDetails()
+				for _, video := range videos {
+					t.log.Infof("开始处理视频 %s (来自数据源: %s)", video.AwemeId, datasourceName)
+
+					// 将 VideoForCollection 转换为 VideoDTO
+					videoDTO := &v1.VideoDTO{
+						AwemeId:        video.AwemeId,
+						AwemePubTime:   video.AwemePubTime.Format("2006-01-02 15:04:05"),
+						AwemeDetailUrl: video.AwemeDetailUrl,
+					}
+
+					// 调用 HeadlessUsecase 进行采集
+					if err := t.headlessUC.FetchAndStoreVideoDetails(ctx, videoDTO); err != nil {
+						t.log.Errorf("视频 %s 采集失败: %v", video.AwemeId, err)
+					} else {
+						t.log.Infof("成功处理视频 %s 的详情采集", video.AwemeId)
+					}
+
+					// 4.6 每处理完一个视频，调用 scheduler.ShortBreak() 进行短暂休眠
+					t.scheduler.ShortBreak()
+				}
+
+				// 4.7 批次结束: 内层循环结束后，意味着一个批次已完成
+				t.log.Infof("数据源 [%s] 批次处理完成，准备进入长时间休眠", datasourceName)
+				t.scheduler.LongBreak()
 			}
-			if taskErr != nil {
-				t.log.Errorf("视频 %s 在所有重试后最终失败: %v", v.AwemeId, taskErr)
-			} else {
-				t.log.Infof("成功处理视频 %s 的详情采集", v.AwemeId)
-			}
 
-			// 3.4 短暂休眠
-			scheduler.ShortBreak()
+			t.log.Infof("======> 数据源 [%s] 处理完成 <======", datasourceName)
 		}
 
-		// 3.5 如果不是最后一个批次，则进行长时间休眠
-		if batchNum < totalBatches {
-			scheduler.LongBreak()
-		}
-	}
-
-	t.log.Info("[无头浏览器-视频详情] 本次工作周期的所有任务已处理完毕，浏览器将关闭。")
-	return nil
-}
-
-// loadCookiesAction 和 newChromedpLogger 两个辅助方法保持不变
-func (t *FetchVideoDetailsHeadlessTask) loadCookiesAction() chromedp.Action {
-	return chromedp.ActionFunc(func(ctx context.Context) error {
-		var cookieBytes []byte
-		var err error
-		if t.cfg.CookieContent != "" {
-			cookieBytes = []byte(t.cfg.CookieContent)
-		} else if t.cfg.CookiePath != "" {
-			cookieBytes, err = ioutil.ReadFile(t.cfg.CookiePath)
-			if err != nil {
-				return fmt.Errorf("读取cookie文件失败: %w", err)
-			}
-		} else {
-			t.log.Warn("未配置Cookie，将以无身份状态访问")
-			return nil // 没有cookie也继续
-		}
-
-		// 替换 "sameSite" 字段以兼容chromedp
-		processedCookiesStr := strings.ReplaceAll(string(cookieBytes), `"sameSite": "unspecified"`, `"sameSite": "Lax"`)
-		cookieBytes = []byte(processedCookiesStr)
-
-		cookies := []*network.CookieParam{}
-		if err := json.Unmarshal(cookieBytes, &cookies); err != nil {
-			return fmt.Errorf("解析cookie JSON失败: %w", err)
-		}
-		t.log.Infof("成功加载 %d 个Cookies", len(cookies))
-		return network.SetCookies(cookies).Do(ctx)
-	})
-}
-
-func (t *FetchVideoDetailsHeadlessTask) newChromedpLogger() func(string, ...interface{}) {
-	return func(format string, args ...interface{}) {
-		msg := fmt.Sprintf(format, args...)
-		if strings.Contains(msg, "initiatorIPAddressSpace") {
-			return
-		}
-		t.log.Info(msg)
+		t.log.Info("所有数据源轮换完成，开始新一轮循环...")
 	}
 }

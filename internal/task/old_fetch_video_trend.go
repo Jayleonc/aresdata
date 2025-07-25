@@ -1,23 +1,25 @@
 package task
 
 import (
-	"aresdata/internal/biz"
 	"context"
+
+	"github.com/Jayleonc/aresdata/internal/data"
+	"github.com/Jayleonc/aresdata/internal/fetcher"
 	"github.com/go-kratos/kratos/v2/log"
 )
 
 // FetchVideoTrendTask 负责每日拉取视频趋势数据的任务
 type FetchVideoTrendTask struct {
-	fetcherUC *biz.FetcherUsecase
-	videoUC   *biz.VideoUsecase // 依赖 VideoUsecase
+	fetcherUC *fetcher.HttpUsecase
+	videoRepo data.VideoRepo // 直接依赖 VideoRepo
 	log       *log.Helper
 }
 
 // NewFetchVideoTrendTask 构造任务实例
-func NewFetchVideoTrendTask(fetcherUC *biz.FetcherUsecase, videoUC *biz.VideoUsecase, logger log.Logger) *FetchVideoTrendTask {
+func NewFetchVideoTrendTask(fetcherUC *fetcher.HttpUsecase, videoRepo data.VideoRepo, logger log.Logger) *FetchVideoTrendTask {
 	return &FetchVideoTrendTask{
 		fetcherUC: fetcherUC,
-		videoUC:   videoUC,
+		videoRepo: videoRepo,
 		log:       log.NewHelper(log.With(logger, "module", "task/fetch-video-trend")),
 	}
 }
@@ -46,7 +48,7 @@ func (t *FetchVideoTrendTask) Run(ctx context.Context, args ...string) error {
 	//}
 
 	// 1. 通过 VideoUsecase 获取需要更新趋势的视频列表
-	videos, err := t.videoUC.GetVideosByTimeWindow(ctx, limit)
+	videos, err := t.videoRepo.FindVideosForDetailsCollection(ctx, limit)
 	if err != nil {
 		t.log.Errorf("获取待更新趋势视频列表失败: %v", err)
 		return err

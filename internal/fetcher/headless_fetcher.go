@@ -1,114 +1,118 @@
-// internal/fetcher/headless_fetcher.go
 package fetcher
 
 import (
-	"aresdata/internal/conf"
 	"context"
 	"fmt"
-	"github.com/go-kratos/kratos/v2/log"
+	"net/http"
 	"strings"
 	"sync"
 	"time"
 
+	"github.com/Jayleonc/aresdata/internal/conf"
 	"github.com/chromedp/cdproto/cdp"
 	"github.com/chromedp/cdproto/network"
 	"github.com/chromedp/chromedp"
+	"github.com/go-kratos/kratos/v2/log"
+	"math/rand"
 )
 
+// HeadlessFetcher 是采集执行层（士兵），负责具体的浏览器操作
 type HeadlessFetcher struct {
-	log *log.Helper
-	cfg *conf.Feigua
+	cfg         *conf.DataSource
+	accountPool *AccountPool
+	log         *log.Helper
 }
 
-func NewHeadlessFetcher(c *conf.Data, logger log.Logger) *HeadlessFetcher {
+func NewHeadlessFetcher(cfg *conf.DataSource, pool *AccountPool, logger log.Logger) *HeadlessFetcher {
 	return &HeadlessFetcher{
-		log: log.NewHelper(logger),
-		cfg: c.GetFeigua(),
+		cfg:         cfg,
+		accountPool: pool,
+		log:         log.NewHelper(log.With(logger, "module", "fetcher.headless")),
 	}
 }
 
-// CaptureAPIs 在一个给定的标签页(ctx)中，导航到entryURL，并监听捕获所有指定的targetAPIPaths。
-// 【最终稳定版】: 使用单一监听器关联两个事件，彻底解决并发竞争问题。
-func (f *HeadlessFetcher) CaptureAPIs(ctx context.Context, entryURL string, targetAPIPaths []string) (map[string]string, error) {
-	f.log.Infof("启动API捕获任务. 入口URL: %s, 目标API数量: %d", entryURL, len(targetAPIPaths))
+// CaptureSummary 负责启动一个一次性的浏览器实例，只为了采集 Summary 数据
+func (f *HeadlessFetcher) CaptureSummary(ctx context.Context, entryURL string) (string, error) {
+	return f.captureSingleAPI(ctx, entryURL, "/api/v3/aweme/detail/detail/sumData")
+}
 
-	results := make(map[string]string)
-	var mu sync.Mutex
+// CaptureTrend 负责启动一个一次性的浏览器实例，只为了采集 Trend 数据
+func (f *HeadlessFetcher) CaptureTrend(ctx context.Context, entryURL string) (string, error) {
+	return f.captureSingleAPI(ctx, entryURL, "/api/v3/aweme/detail/newTrend")
+}
+
+// captureSingleAPI 是底层的、私有的采集方法，封装了完整的浏览器生命周期
+func (f *HeadlessFetcher) captureSingleAPI(ctx context.Context, entryURL, apiPath string) (string, error) {
+	// 1. 获取一个新账号
+	account := f.accountPool.GetNextAccount()
+	if account == nil {
+		return "", fmt.Errorf("no available accounts")
+	}
+	f.log.Infof("Using account from %s to capture API [%s]", account.path, apiPath)
+
+	// 2. 构建浏览器伪装参数
+	opts := f.buildBrowserOptions()
+	allocCtx, cancel := chromedp.NewExecAllocator(context.Background(), opts...)
+	defer cancel()
+
+	// 3. 启动一个带超时的浏览器实例
+	taskCtx, cancel := chromedp.NewContext(allocCtx, chromedp.WithLogf(f.log.Infof))
+	defer cancel()
+
+	ctxTimeout, cancel := context.WithTimeout(taskCtx, 2*time.Minute)
+	defer cancel()
+
+	// 4. 加载Cookie并注入JS伪装
+	if err := f.setCookies(ctxTimeout, account.Cookies); err != nil {
+		return "", fmt.Errorf("failed to set cookies: %w", err)
+	}
+	if err := chromedp.Run(ctxTimeout, chromedp.Evaluate(`Object.defineProperty(navigator, 'webdriver', {get: () => undefined})`, nil)); err != nil {
+		return "", fmt.Errorf("failed to inject navigator.webdriver: %w", err)
+	}
+
+	// 5. 监听并捕获唯一的API
+	apiResult, err := f.captureAPI(ctxTimeout, entryURL, apiPath)
+	if err != nil {
+		return "", err
+	}
+
+	return apiResult, nil
+}
+
+// captureAPI 是真正执行监听和捕获的逻辑
+func (f *HeadlessFetcher) captureAPI(ctx context.Context, entryURL string, targetAPIPath string) (string, error) {
+	var result string
 	var wg sync.WaitGroup
-	wg.Add(len(targetAPIPaths))
+	wg.Add(1)
 
-	// a-t-com/aresdata 请求ID与API路径的映射，用于关联事件
-	requestMap := make(map[network.RequestID]string)
-	var requestMapMu sync.Mutex
-
-	// 确保监听器在函数返回时被正确取消
 	listenCtx, cancelListen := context.WithCancel(ctx)
 	defer cancelListen()
 
-	// --- 【核心】只启动一个监听器 ---
 	chromedp.ListenTarget(listenCtx, func(ev interface{}) {
-		// 分发事件到不同的处理器
 		switch ev := ev.(type) {
-
-		// 步骤1：当收到响应头时，进行标记
 		case *network.EventResponseReceived:
-			for _, apiPath := range targetAPIPaths {
-				if strings.Contains(ev.Response.URL, apiPath) {
-					requestMapMu.Lock()
-					// 标记这个请求ID是我们感兴趣的
-					requestMap[ev.RequestID] = apiPath
-					requestMapMu.Unlock()
-					f.log.Infof("已标记目标API请求: %s (ID: %s)", apiPath, ev.RequestID)
-				}
-			}
-
-		// 步骤2：当请求完全加载后，进行处理
-		case *network.EventLoadingFinished:
-			requestMapMu.Lock()
-			// 检查这个完成的请求是否在我们标记的列表里
-			apiPath, ok := requestMap[ev.RequestID]
-			requestMapMu.Unlock()
-
-			if ok {
-				// 如果是，启动goroutine去获取响应体
-				go func(reqID network.RequestID, path string) {
-					// 由于此事件在数据完全加载后触发，所以GetResponseBody是100%安全的
+			if strings.Contains(ev.Response.URL, targetAPIPath) {
+				// 使用goroutine以非阻塞方式获取响应体
+				go func(reqID network.RequestID) {
 					bodyBytes, err := network.GetResponseBody(reqID).Do(cdp.WithExecutor(listenCtx, chromedp.FromContext(listenCtx).Target))
-					if err != nil {
-						f.log.Errorf("获取API [%s] 响应体失败: %v", path, err)
-						wg.Done() // 即使失败也要标记完成，防止死锁
-						return
+					if err == nil {
+						result = string(bodyBytes)
+						f.log.Infof("Successfully captured API response: %s", targetAPIPath)
+					} else {
+						f.log.Errorf("Failed to get response body for API [%s]: %v", targetAPIPath, err)
 					}
-
-					// 使用互斥锁安全地写入结果
-					mu.Lock()
-					if _, exists := results[path]; !exists {
-						results[path] = string(bodyBytes)
-						f.log.Infof("成功捕获并获取API响应: %s", path)
-						wg.Done()
-					}
-					mu.Unlock()
-
-					// 清理已处理的请求，防止重复处理（可选但推荐）
-					requestMapMu.Lock()
-					delete(requestMap, reqID)
-					requestMapMu.Unlock()
-
-				}(ev.RequestID, apiPath)
+					wg.Done()
+				}(ev.RequestID)
 			}
 		}
 	})
 
-	// --- 后续的导航和等待逻辑保持不变 ---
-	err := chromedp.Run(ctx,
-		network.Enable(),
-		chromedp.Navigate(entryURL),
-		chromedp.Sleep(time.Duration(f.cfg.ThrottleStartWaitMs)*time.Millisecond),
-	)
-	if err != nil {
-		return nil, fmt.Errorf("chromedp导航失败: %w", err)
+	// 执行导航
+	if err := chromedp.Run(ctx, network.Enable(), chromedp.Navigate(entryURL), chromedp.Sleep(2*time.Second)); err != nil {
+		return "", fmt.Errorf("navigation failed: %w", err)
 	}
 
+	// 等待API被捕获或超时
 	waitChan := make(chan struct{})
 	go func() {
 		wg.Wait()
@@ -117,14 +121,53 @@ func (f *HeadlessFetcher) CaptureAPIs(ctx context.Context, entryURL string, targ
 
 	select {
 	case <-waitChan:
-		f.log.Info("所有目标API均已成功捕获。")
-		return results, nil
+		return result, nil
 	case <-ctx.Done():
-		mu.Lock()
-		defer mu.Unlock()
-		if len(results) < len(targetAPIPaths) {
-			return results, fmt.Errorf("任务超时，仅捕获了 %d/%d 个API", len(results), len(targetAPIPaths))
+		if result != "" {
+			return result, nil
 		}
-		return results, nil
+		return "", fmt.Errorf("task timed out while waiting for API: %s", targetAPIPath)
 	}
+}
+
+// buildBrowserOptions 生成带伪装的浏览器启动参数
+func (f *HeadlessFetcher) buildBrowserOptions() []chromedp.ExecAllocatorOption {
+	userAgent := f.cfg.Headless.UserAgent
+	if userAgent == "" {
+		userAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+	}
+	width := rand.Intn(1920-1366+1) + 1366
+	height := rand.Intn(1080-768+1) + 768
+
+	opts := append(chromedp.DefaultExecAllocatorOptions[:],
+		chromedp.Flag("headless", "new"),
+		chromedp.Flag("disable-blink-features", "AutomationControlled"),
+		chromedp.UserAgent(userAgent),
+		chromedp.WindowSize(width, height),
+	)
+
+	if f.cfg.Proxy != "" {
+		opts = append(opts, chromedp.ProxyServer(f.cfg.Proxy))
+	}
+	return opts
+}
+
+// setCookies 辅助函数，用于设置cookies
+func (f *HeadlessFetcher) setCookies(ctx context.Context, cookies []*http.Cookie) error {
+	return chromedp.Run(ctx, chromedp.ActionFunc(func(ctx context.Context) error {
+		for _, cookie := range cookies {
+			expr := cdp.TimeSinceEpoch(cookie.Expires)
+			err := network.SetCookie(cookie.Name, cookie.Value).
+				WithDomain(cookie.Domain).
+				WithPath(cookie.Path).
+				WithHTTPOnly(cookie.HttpOnly).
+				WithSecure(cookie.Secure).
+				WithExpires(&expr).
+				Do(ctx)
+			if err != nil {
+				return fmt.Errorf("could not set cookie %s: %v", cookie.Name, err)
+			}
+		}
+		return nil
+	}))
 }

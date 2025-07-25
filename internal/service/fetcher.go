@@ -1,20 +1,21 @@
 package service
 
 import (
-	v1 "aresdata/api/v1"
-	"aresdata/internal/biz"
 	"context"
+
+	v1 "github.com/Jayleonc/aresdata/api/v1"
+	"github.com/Jayleonc/aresdata/internal/fetcher"
 	"github.com/go-kratos/kratos/v2/log"
 )
 
 type FetcherService struct {
 	v1.UnimplementedFetcherServer
 
-	uc  *biz.FetcherUsecase
+	uc  *fetcher.HttpUsecase
 	log *log.Helper
 }
 
-func NewFetcherService(uc *biz.FetcherUsecase, logger log.Logger) *FetcherService {
+func NewFetcherService(uc *fetcher.HttpUsecase, logger log.Logger) *FetcherService {
 	return &FetcherService{
 		uc:  uc,
 		log: log.NewHelper(log.With(logger, "module", "service/fetcher")),

@@ -1,11 +1,10 @@
 package biz
 
 import (
-	v1 "aresdata/api/v1"
-	"aresdata/internal/data"
 	"context"
 	"fmt"
-	"time"
+	v1 "github.com/Jayleonc/aresdata/api/v1"
+	"github.com/Jayleonc/aresdata/internal/data"
 )
 
 // VideoUsecase 封装视频维度相关的业务逻辑
@@ -64,23 +63,4 @@ func (uc *VideoUsecase) GetVideosForFirstCollection(ctx context.Context, limit i
 func (uc *VideoUsecase) GetVideosByTimeWindow(ctx context.Context, limit int) ([]*data.VideoForCollection, error) {
 	// 这个方法现在清晰地指向了那个基于时间的查询逻辑，如果其他地方仍有依赖，也不会出错
 	return uc.repo.FindVideosForDetailsCollection(ctx, limit)
-}
-
-// GetPartiallyCollectedVideos 获取部分采集失败的视频列表，用于修复任务
-func (uc *VideoUsecase) GetPartiallyCollectedVideos(ctx context.Context, hoursAgo int, limit int) ([]*data.VideoForCollection, error) {
-	since := time.Now().Add(-time.Duration(hoursAgo) * time.Hour)
-	dataTypes := []string{"video_trend_headless", "video_summary_headless"}
-
-	// 步骤1：调用 sourceDataRepo，获取“成功了一半”的视频ID列表
-	partiallyCollectedIDs, err := uc.sourceDataRepo.FindPartiallyCollectedEntityIDs(ctx, since, dataTypes)
-	if err != nil {
-		return nil, fmt.Errorf("获取部分采集的ID列表失败: %w", err)
-	}
-
-	if len(partiallyCollectedIDs) == 0 {
-		return nil, nil // 没有需要修复的，直接返回
-	}
-
-	// 步骤2：调用 videoRepo，用上一步获取的ID列表查询完整的视频信息
-	return uc.repo.FindVideosByIDs(ctx, partiallyCollectedIDs, limit)
 }

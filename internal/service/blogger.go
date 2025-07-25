@@ -1,10 +1,11 @@
 package service
 
 import (
-	"aresdata/internal/biz"
 	"context"
 
-	pb "aresdata/api/v1"
+	"github.com/Jayleonc/aresdata/internal/biz"
+
+	pb "github.com/Jayleonc/aresdata/api/v1"
 )
 
 type BloggerServiceService struct {

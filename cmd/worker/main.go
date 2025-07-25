@@ -1,10 +1,10 @@
 package main
 
 import (
-	"aresdata/internal/conf"
-	"aresdata/internal/task"
 	"context"
 	"flag"
+	"github.com/Jayleonc/aresdata/internal/conf"
+	"github.com/Jayleonc/aresdata/internal/
 	"github.com/go-kratos/kratos/v2/config"
 	"github.com/go-kratos/kratos/v2/config/file"
 	"github.com/go-kratos/kratos/v2/log"

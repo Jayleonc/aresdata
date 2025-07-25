@@ -40,7 +40,24 @@ message Data {
 	}
 	Database database = 1;
 	Redis redis = 2;
-	Feigua feigua = 3;
+	repeated DataSource datasources = 4;
+}
+
+message DataSource {
+  string name = 1;
+  string base_url = 2;
+  string type = 3;
+  int64 throttle_min_wait_ms = 4;
+  int64 throttle_max_wait_ms = 5;
+  int32 timeout = 6;
+  Headless headless = 7;
+
+  message Headless {
+    bool enabled = 1;
+    string user_agent = 2;
+  }
+  string proxy = 8;
+  repeated string account_pool = 9;
 }
 
 // Data_Feigua 结构体，包含 BaseUrl 和 Cookie 字段

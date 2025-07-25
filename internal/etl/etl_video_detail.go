@@ -3,16 +3,16 @@
 package etl
 
 import (
-	v1 "aresdata/api/v1"
 	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
+	v1 "github.com/Jayleonc/aresdata/api/v1"
 	"strconv"
 	"time"
 
-	"aresdata/internal/data"
-	"aresdata/pkg/utils"
+	"github.com/Jayleonc/aresdata/internal/data"
+	"github.com/Jayleonc/aresdata/pkg/utils"
 	"github.com/go-kratos/kratos/v2/log"
 	"gorm.io/gorm"
 )

@@ -1,10 +1,10 @@
 package service
 
 import (
-	"aresdata/internal/biz"
 	"context"
+	"github.com/Jayleonc/aresdata/internal/biz"
 
-	pb "aresdata/api/v1"
+	pb "github.com/Jayleonc/aresdata/api/v1"
 )
 
 type ProductServiceService struct {

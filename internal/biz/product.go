@@ -1,9 +1,9 @@
 package biz
 
 import (
-	v1 "aresdata/api/v1"
-	"aresdata/internal/data"
 	"context"
+	v1 "github.com/Jayleonc/aresdata/api/v1"
+	"github.com/Jayleonc/aresdata/internal/data"
 )
 
 // ProductUsecase 封装商品维度相关的业务逻辑

@@ -1,11 +1,12 @@
 package data
 
 import (
-	v1 "aresdata/api/v1"
 	"context"
 	"fmt"
+	v1 "github.com/Jayleonc/aresdata/api/v1"
 	"time"
 
+	"google.golang.org/protobuf/types/known/timestamppb"
 	"gorm.io/gorm/clause"
 )
 
@@ -49,6 +50,7 @@ type Video struct {
 	//
 	SummaryUpdatedAt *time.Time `gorm:"index;comment:总览数据更新时间;type:timestamp"`
 	TrendUpdatedAt   *time.Time `gorm:"index;comment:趋势数据更新时间;type:timestamp"`
+	CollectionStatus int32      `gorm:"comment:采集状态"`
 }
 
 func (Video) TableName() string {
@@ -56,6 +58,7 @@ func (Video) TableName() string {
 }
 
 type VideoRepo interface {
+	SaveSourceData(context.Context, *v1.SourceData) (*v1.SourceData, error)
 	FindVideosByIDs(ctx context.Context, awemeIDs []string, limit int) ([]*VideoForCollection, error)
 	UpsertFromRank(ctx context.Context, video *Video) error
 	UpdateFromSummary(ctx context.Context, video *Video) error
@@ -67,6 +70,7 @@ type VideoRepo interface {
 	FindVideosForDetailsCollection(ctx context.Context, limit int) ([]*VideoForCollection, error)
 	UpdateTrendTimestamp(ctx context.Context, awemeId string) error
 	FindVideosExcludingIDs(ctx context.Context, ids []string, limit int) ([]*VideoForCollection, error)
+	FindPartiallyCollectedVideos(ctx context.Context, hoursAgo int, limit int) ([]*VideoForCollection, error)
 }
 
 type videoRepo struct {
@@ -211,30 +215,53 @@ func (r *videoRepo) FindVideosByIDs(ctx context.Context, awemeIDs []string, limi
 }
 
 func (r *videoRepo) FindRecentActiveAwemeIds(ctx context.Context, days int) ([]string, error) {
+	const defaultLimit = 100
 	var awemeIds []string
+	var videos []*Video
 	err := r.db.WithContext(ctx).Model(&Video{}).
 		Where("updated_at >= ?", time.Now().AddDate(0, 0, -days)).
-		Pluck("aweme_id", &awemeIds).Error
-	return awemeIds, err
+		Order("aweme_pub_time DESC").
+		Limit(defaultLimit).
+		Find(&videos).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	for _, v := range videos {
+		awemeIds = append(awemeIds, v.AwemeId)
+	}
+
+	return awemeIds, nil
 }
 
-// FindVideosExcludingIDs 查找排除指定ID列表之外的视频，用于首次采集。
-func (r *videoRepo) FindVideosExcludingIDs(ctx context.Context, ids []string, limit int) ([]*VideoForCollection, error) {
-	var results []*VideoForCollection
-
-	db := r.db.WithContext(ctx).Model(&Video{}).
-		Select("aweme_id", "aweme_pub_time", "aweme_detail_url")
-
-	if len(ids) > 0 {
-		db = db.Where("aweme_id NOT IN ?", ids)
+func (r *videoRepo) SaveSourceData(ctx context.Context, d *v1.SourceData) (*v1.SourceData, error) {
+	sd := CopySourceDataToDO(d)
+	err := r.Data.db.WithContext(ctx).Create(sd).Error
+	if err != nil {
+		return nil, err
 	}
+	return CopySourceDataToDTO(sd), nil
+}
+
+func (r *videoRepo) FindVideosExcludingIDs(ctx context.Context, ids []string, limit int) ([]*VideoForCollection, error) {
+	panic("implement me")
+}
+
+func (r *videoRepo) FindPartiallyCollectedVideos(ctx context.Context, hoursAgo int, limit int) ([]*VideoForCollection, error) {
+	since := time.Now().Add(-time.Duration(hoursAgo) * time.Hour)
+
+	var videos []*VideoForCollection
+	db := r.Data.db.WithContext(ctx).Model(&Video{}).
+		Where("updated_at < ? AND collection_status = ?", since, v1.CollectionStatus_PARTIALLY_COLLECTED)
 
 	err := db.Order("aweme_pub_time DESC").
 		Limit(limit).
-		Find(&results).Error
+		Find(&videos).Error
 
 	if err != nil {
-		return nil, fmt.Errorf("查询排除ID列表的视频失败: %w", err)
+		return nil, err
 	}
-	return results, nil
+
+	return videos, nil
 }

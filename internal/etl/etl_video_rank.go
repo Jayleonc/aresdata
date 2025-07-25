@@ -1,13 +1,13 @@
 package etl
 
 import (
-	v1 "aresdata/api/v1"
-	"aresdata/internal/data"
-	"aresdata/pkg/crypto"
-	"aresdata/pkg/utils"
 	"context"
 	"encoding/json"
 	"fmt"
+	v1 "github.com/Jayleonc/aresdata/api/v1"
+	"github.com/Jayleonc/aresdata/internal/data"
+	"github.com/Jayleonc/aresdata/pkg/crypto"
+	"github.com/Jayleonc/aresdata/pkg/utils"
 	"github.com/go-kratos/kratos/v2/log"
 	"strings"
 	"time"

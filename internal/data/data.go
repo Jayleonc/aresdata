@@ -1,7 +1,7 @@
 package data
 
 import (
-	"aresdata/internal/conf"
+	"github.com/Jayleonc/aresdata/internal/conf"
 	"time"
 
 	"github.com/go-kratos/kratos/v2/log"
@@ -14,6 +14,7 @@ import (
 // ProviderSet is data providers.
 var ProviderSet = wire.NewSet(
 	NewData,
+	NewDataSourcesProvider,
 	NewRedisClient,
 	NewSourceDataRepo,
 	NewVideoRankRepo,
@@ -79,4 +80,9 @@ func NewRedisClient(conf *conf.Data) redis.Cmdable {
 		ReadTimeout:  conf.Redis.ReadTimeout.AsDuration(),
 		WriteTimeout: conf.Redis.WriteTimeout.AsDuration(),
 	})
+}
+
+// NewDataSourcesProvider creates a provider that extracts the datasource configurations.
+func NewDataSourcesProvider(c *conf.Data) []*conf.DataSource {
+	return c.Datasources
 }

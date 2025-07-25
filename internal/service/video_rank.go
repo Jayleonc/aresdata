@@ -3,8 +3,8 @@ package service
 import (
 	"context"
 
-	pb "aresdata/api/v1"
-	"aresdata/internal/biz"
+	pb "github.com/Jayleonc/aresdata/api/v1"
+	"github.com/Jayleonc/aresdata/internal/biz"
 )
 
 // VideoRankService 提供视频榜单查询的 gRPC/HTTP 服务

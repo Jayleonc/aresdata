@@ -1,19 +1,19 @@
 package task
 
 import (
-	"aresdata/internal/biz"
 	"context"
+	"github.com/Jayleonc/aresdata/internal/fetcher"
 	"github.com/go-kratos/kratos/v2/log"
 	"time"
 )
 
 type FetchVideoRankTask struct {
-	uc  *biz.FetcherUsecase
+	uc  *fetcher.HttpUsecase
 	log *log.Helper // 正确的日志字段类型
 	// 未来可以注入 TaskLogRepo 来记录任务审计日志
 }
 
-func NewFetchVideoRankTask(uc *biz.FetcherUsecase, logger log.Logger) *FetchVideoRankTask {
+func NewFetchVideoRankTask(uc *fetcher.HttpUsecase, logger log.Logger) *FetchVideoRankTask {
 	return &FetchVideoRankTask{
 		uc:  uc,
 		log: log.NewHelper(log.With(logger, "module", "task/fetch-video-rank")),
